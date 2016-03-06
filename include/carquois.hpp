@@ -55,7 +55,7 @@
 #define SPORADIQUE 6 /*Sporadic?*/
 #define UNAMED 7
 #define E_ELIPTIQUE 8 /*E_Elliptic?*/
-#define ATILDEALT 9
+#define ATILDEALT 9 
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 
@@ -63,35 +63,35 @@ class Carquois
 {
 	public:
 
-		/* Constructeurs et Destructeurs */
-		Carquois(int n);
-		Carquois();
-		Carquois(int type, int nbSommets, int orientation=0);
-		Carquois(const Carquois &ca);
-		Carquois(const Carquois &ca, int k);
-		Carquois(int ** matrice, int n,int indice);
-		Carquois(const char* file);
-		~Carquois();
+		/* Constructeurs et Destructeurs/Constructors and Destructors */
+		Carquois(int n);/*Construct a quiver given number of vertices?*/
+		Carquois();/*Construct a quiver given nothing?*/
+		Carquois(int type, int nbSommets, int orientation=0);/*Sommets = sources?*/
+		Carquois(const Carquois &ca);/*Quiver copying?*/
+		Carquois(const Carquois &ca, int k);/*Copy a part of a quiver?*/
+		Carquois(int ** matrice, int n,int indice);/*Given a matrice = matrix, num of vertices and what..*/
+		Carquois(const char* file);/*Read a quiver from .qmu?*/
+		~Carquois();/*Destructor*/
 
-		/* Algorithmes */
-		void mutate(int k);
-		bool infinite();
-		void genGraph();
-		bool testInfiniEmpirique(int mutations);
-		void toFile(const char* filename);
-		void semiDestroy();
-		int getNbVoisinsMax();
-		int estConnexe();
-		bool aUneDouble(int i);
-		bool troisCycleOriente(int i, int j, int k);
-		bool cyclique();
+		/* Algorithmes/Algorithms */
+		void mutate(int k);/*Do mutation at vertex k?*/
+		bool infinite();/*Is this green sequence infinite?*/
+		void genGraph();/*Generate a graph (or quiver?)*/
+		bool testInfiniEmpirique(int mutations);/*Test whether a green sequence is infinite empirically?*/
+		void toFile(const char* filename);/*Put a quiver into a file?*/
+		void semiDestroy();/*Semi-destroy. Not sure what this means.*/
+		int getNbVoisinsMax();/*get Nb adjacent Max?*/
+		int estConnexe();/*Is connected*/
+		bool aUneDouble(int i);/*a double? What's this?*/
+		bool troisCycleOriente(int i, int j, int k);/*Oriented 3-cycle?*/
+		bool cyclique();/*Is cyclic?*/
 
-		/* Affichage */
-		void affiche();
+		/* Affichage/Viewing?*/
+		void affiche();/*Post (to the screen)?*/
 		void printMutations();
 
-		/* Getters et Setters */
-		void setM(int i, int j, int val);
+		/* Getters et Setters/Get and set functions */
+		void setM(int i, int j, int val);/*Set M[i][j] as val.*/
 		/*
 		But: Getter pour la matrice d'incidence
 		Entrée: 2 entiers i et j
