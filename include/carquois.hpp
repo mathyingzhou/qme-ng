@@ -24,6 +24,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+/* Ying Zhou's notes:
+* In essence this quiver (in French Carquois) file does not really depend on anything..except for Exception.h which does not
+* count...
+*/
 #ifndef CARQUOIS_H
 #define CARQUOIS_H
 
@@ -48,9 +52,9 @@
 #define ATILDE 3
 #define DTILDE 4
 #define ETILDE 5
-#define SPORADIQUE 6
+#define SPORADIQUE 6 /*Sporadic?*/
 #define UNAMED 7
-#define E_ELIPTIQUE 8
+#define E_ELIPTIQUE 8 /*E_Elliptic?*/
 #define ATILDEALT 9
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
