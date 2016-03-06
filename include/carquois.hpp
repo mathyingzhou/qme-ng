@@ -166,7 +166,7 @@ class Carquois
 	private:
 		int **M;/*The B-matrix?*/
 		int n;/*Number of vertices?*/
-		int valeurAbs(int k);
+		int valeurAbs(int k);/*AbsValue, take absolute value.*/
 		int graphAJour;/*??*/
 		std::vector<int> mutations;/*List of previous mutations?*/
 		int score;/*??*/
