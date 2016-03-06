@@ -98,7 +98,12 @@ class Carquois
 		Sortie: un entier
 		Précondition: i et j compris entre 0 et n-1
 		PostCondition: return M[i][j] si i et j conformes, sinon jette une exception
-
+		
+		Goal: Get an entry of the incidence matrix
+		Input: 2 integers i and j
+		Output: an integer
+		Precondition : i and j between 0 and n-1
+		Postcondition : return M [i] [j] if i and j are within bounds, otherwise throws an exception
 		*/
 		inline int getM(int i, int j)
 		{
@@ -106,7 +111,7 @@ class Carquois
 				return M[i][j];
 			else
 			{
-				throw Exception("ERREUR_DOMAINE: getM");
+				throw Exception("ERREUR_DOMAINE/DOMAIN_ERROR: getM");/*Domain error*/
 			}
 		}
 		inline int getN()
@@ -121,8 +126,9 @@ class Carquois
 		inline int lastMutation()
 		{
 			return (mutations.size()>0)?mutations[mutations.size()-1]:-1;
+			/*If any mutation has been done give the last mutation. Otherwise return -1.*/
 		}
-		inline int graphEstAJour()
+		inline int graphEstAJour()/*graph a day?? Not sure what this means*/
 		{
 			return graphAJour;
 		}
@@ -145,10 +151,10 @@ class Carquois
 			nextJ = j;
 		}
 		
-		/* Getter avancés pour raisonnements locaux */
-		std::vector<int> getVoisins(int sommet);
-		std::vector<int> getVoisinsDoubles(int sommet);
-		std::vector<int> getVoisinsSimples(int sommet);
+		/* Getter avancés pour raisonnements locaux/Advanced get functions for local reasoning (What?)*/
+		std::vector<int> getVoisins(int sommet);/*Get neighbor with source as input?*/
+		std::vector<int> getVoisinsDoubles(int sommet);/*Get double neighbor with source as input?*/
+		std::vector<int> getVoisinsSimples(int sommet);/*Get simple neighbor with source as input?*/
 		std::vector<int> getVoisinsSimplesPredecesseurs(int sommet);
 		std::vector<int> getVoisinsSimplesSuccesseurs(int sommet);
 		std::vector<int> getSommetsArreteDoubleEntrante();
@@ -158,22 +164,22 @@ class Carquois
 		int getNbVoisinsSimplesSuccesseurs(int sommet);
 
 	private:
-		int **M;
-		int n;
+		int **M;/*The B-matrix?*/
+		int n;/*Number of vertices?*/
 		int valeurAbs(int k);
-		int graphAJour;
-		std::vector<int> mutations;
-		int score;
-		void genScore();
-		int semifree;
-		int nbVoisinsMax;
-		int connexe;
-		int nextI;
-		int nextJ;
-	    graph nautyG[MAXN*MAXM];
-		graph nautyGC[MAXN*MAXM];
-		set *gv;
-       	bool exploreCycle(int *,int);
+		int graphAJour;/*??*/
+		std::vector<int> mutations;/*List of previous mutations?*/
+		int score;/*??*/
+		void genScore();/*??*/
+		int semifree;/*??*/
+		int nbVoisinsMax;/*??*/
+		int connexe;/*neighbor?*/
+		int nextI;/*??*/
+		int nextJ;/*??*/
+	    graph nautyG[MAXN*MAXM]; /*Some nauty object??*/
+		graph nautyGC[MAXN*MAXM];/*Some nauty object??*/
+		set *gv;/*??*/
+       	bool exploreCycle(int *,int);/*??*/
 
 };
 #endif
