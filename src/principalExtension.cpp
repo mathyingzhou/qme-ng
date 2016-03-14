@@ -22,7 +22,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-/* I believe what they call a "Principal Extension" (PE from now on) is basically just a framed quiver.*/
+/* I believe what they call a "Principal Extension" (PE from now on) is basically just a framed quiver.
+---Ying Zhou*/
 #include "principalExtension.hpp"
 
 /* Copying PrincipalExtension*/
@@ -52,7 +53,7 @@ PrincipalExtension::PrincipalExtension(const PrincipalExtension &ca)
     }
     
 }
-
+/* Generate a PE from a quiver, or generate a framed quiver from a quiver*/
 PrincipalExtension::PrincipalExtension(Carquois c)
 {
     int i,j;
@@ -72,7 +73,7 @@ PrincipalExtension::PrincipalExtension(Carquois c)
     semiFreed = false;
     mutationsSize = 0;
 }
-
+/*Read a framed quiver from a file, qmu or otherwise.*/
 PrincipalExtension::PrincipalExtension(const char *file)
 {
     std::string contenu,ligne;
@@ -141,14 +142,15 @@ PrincipalExtension::PrincipalExtension(const char *file)
     semiFreed = false;
     mutationsSize = 0;
 }
-
+/* Destructor */
 PrincipalExtension::~PrincipalExtension()
 {
     if(!semiFreed) {
         delete[] this->M;
     }
 }
-
+/* Just like for quivers, "semiDestroy" or "semifree" is what these guys call the procedure of 
+destroying most data (I will see how much later). Any object that has been semidestroyed is called semifreed.*/
 void PrincipalExtension::semiDestroy()
 {
     delete[] this->M;
