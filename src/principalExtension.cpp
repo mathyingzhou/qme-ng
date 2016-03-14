@@ -22,9 +22,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
+/* I believe what they call a "Principal Extension" (PE from now on) is basically just a framed quiver.*/
 #include "principalExtension.hpp"
 
+/* Copying PrincipalExtension*/
 PrincipalExtension::PrincipalExtension(const PrincipalExtension &ca)
 {
     int i,j;
