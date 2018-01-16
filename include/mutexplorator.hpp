@@ -32,7 +32,7 @@
 #include <vector>
 #include <limits.h>
 #include "Exception.h"
-#include "carquois.hpp"
+#include "quiver.hpp"
 
 typedef int ** matrice;
 
