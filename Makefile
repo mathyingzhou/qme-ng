@@ -1,25 +1,25 @@
 CC=g++
 CCFLAGS=-D__STDC_LIMIT_MACROS -D__cplusplus -O3 -march=native
-LDFLAGS=-lboost_program_options -lgmp -lgmpxx
+LDFLAGS=-L/usr/local/lib -lboost_program_options -lgmp -lgmpxx
 SRCDIR=src
-INC=-I./include
+INC=-I./include -I/usr/local/include -I/usr/local/boost/include
 
 all: qme-ng
 Exception.o: $(SRCDIR)/Exception.cpp
 	$(CC) $(CCFLAGS) $< $(INC) -c
 greenSizeHash.o: $(SRCDIR)/greenSizeHash.cpp
 	$(CC) $(CCFLAGS) $< $(INC) -c
-carquois.o: $(SRCDIR)/carquois.cpp Exception.o
+quiver.o: $(SRCDIR)/quiver.cpp Exception.o
 	$(CC) $(CCFLAGS) $< $(INC) -c
 principalExtension.o: $(SRCDIR)/principalExtension.cpp Exception.o
 	$(CC) $(CCFLAGS) $< $(INC) -c
-mutexplorator.o: $(SRCDIR)/mutexplorator.cpp carquois.o Exception.o
+mutexplorator.o: $(SRCDIR)/mutexplorator.cpp quiver.o Exception.o
 	$(CC) $(CCFLAGS) $< $(INC) -c
 greenexplorator.o: $(SRCDIR)/greenexplorator.cpp greenSizeHash.o principalExtension.o Exception.o
 	$(CC) $(CCFLAGS) $< $(INC) -c
 greenfinder.o: $(SRCDIR)/greenfinder.cpp principalExtension.o Exception.o
 	$(CC) $(CCFLAGS) $< $(INC) -c
-mutexploratorSeq.o: $(SRCDIR)/mutexploratorSeq.cpp carquois.o Exception.o mutexplorator.o
+mutexploratorSeq.o: $(SRCDIR)/mutexploratorSeq.cpp quiver.o Exception.o mutexplorator.o
 	$(CC) $(CCFLAGS) $< $(INC) -c
 rng.o: $(SRCDIR)/rng.c
 	$(CC) $(CCFLAGS) $< $(INC) -c
@@ -36,7 +36,7 @@ naugraph.o : $(SRCDIR)/naugraph.c
 nautinv.o : $(SRCDIR)/nautinv.c
 	$(CC) $(CCFLAGS) $< $(INC) -c
 
-qme-ng: qme-ng.cpp greenexplorator.o greenfinder.o mutexploratorSeq.o mutexplorator.o greenSizeHash.o principalExtension.o carquois.o Exception.o nautil.o rng.o nauty.o naututil.o nausparse.o naugraph.o nautinv.o
+qme-ng: qme-ng.cpp greenexplorator.o greenfinder.o mutexploratorSeq.o mutexplorator.o greenSizeHash.o principalExtension.o quiver.o Exception.o nautil.o rng.o nauty.o naututil.o nausparse.o naugraph.o nautinv.o
 	$(CC) $(CCFLAGS) $(INC) $^ $(LDFLAGS) -o $@
 
 clean:
