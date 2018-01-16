@@ -40,7 +40,7 @@
 #include <stdint.h>
 #include <gmpxx.h>
 #include "Exception.h"
-#include "carquois.hpp"
+#include "quiver.hpp"
 #include "nautinv.h"
 
 
