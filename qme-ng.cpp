@@ -43,24 +43,24 @@ int main(int argc, char **argv)
     int random_tries;
     std::vector<int> size;
     std::string type;
-    Carquois *carquois;
+    Quiver *quiver;
     GreenExplorator ge;
     GreenFinder *gf;
     MutExploratorSeq *explorator;
     PrincipalExtension *pt;
-    std::map<std::string,int> type_carquois;
+    std::map<std::string,int> type_quiver;
     std::map<std::string,int>::const_iterator it_map;
-    /* Initializing type_carquois map */
-    type_carquois["A"] = A;
-    type_carquois["D"] = D;
-    type_carquois["E"] = E;
-    type_carquois["ATILDE"] = ATILDE;
-    type_carquois["ATILDEALT"] = ATILDEALT;
-    type_carquois["DTILDE"] = DTILDE;
-    type_carquois["ETILDE"] = ETILDE;
-    type_carquois["SPORADIQUE"] = SPORADIQUE;
-    type_carquois["UNAMED"] = UNAMED;
-    type_carquois["E_ELIPTIQUE"] = E_ELIPTIQUE;
+    /* Initializing type_quiver map */
+    type_quiver["A"] = A;
+    type_quiver["D"] = D;
+    type_quiver["E"] = E;
+    type_quiver["ATILDE"] = ATILDE;
+    type_quiver["ATILDEALT"] = ATILDEALT;
+    type_quiver["DTILDE"] = DTILDE;
+    type_quiver["ETILDE"] = ETILDE;
+    type_quiver["SPORADIQUE"] = SPORADIQUE;
+    type_quiver["UNAMED"] = UNAMED;
+    type_quiver["E_ELIPTIQUE"] = E_ELIPTIQUE;
 
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
         if(vm.count("file") && vm.count("pefile")) {throw Exception("Only one type of file can be given !");}
         if(vm.count("file"))
         {
-                    carquois = new Carquois(vm["file"].as<std::string>().c_str());
+                    quiver = new Quiver(vm["file"].as<std::string>().c_str());
         }
         else if(vm.count("type"))
         {
@@ -104,8 +104,8 @@ int main(int argc, char **argv)
             {
                 size = vm["size"].as< std::vector<int> >();
                 type = vm["type"].as<std::string>();
-                it_map = type_carquois.find(type);
-                if(it_map == type_carquois.end())
+                it_map = type_quiver.find(type);
+                if(it_map == type_quiver.end())
                 {
                     // Unknown type
                     std::cerr << desc << "\n";
@@ -114,10 +114,10 @@ int main(int argc, char **argv)
                 else
                 {
                     if(size.size() == 1) {
-                        carquois = new Carquois(it_map->second,size[0]);
+                        quiver = new Quiver(it_map->second,size[0]);
                     }
                     if(size.size() == 2) {
-                        carquois = new Carquois(it_map->second,size[0],size[1]);
+                        quiver = new Quiver(it_map->second,size[0],size[1]);
                     }
                 }    
             }
@@ -144,10 +144,10 @@ int main(int argc, char **argv)
     {
         if(vm.count("pefile")) { pt = new PrincipalExtension(vm["pefile"].as<std::string>().c_str());}
         else  {
-            pt = new PrincipalExtension(*carquois);
+            pt = new PrincipalExtension(*quiver);
         }
-        pt->affiche();
-        pt->generateSommetsVerts();
+        pt->print();
+        pt->generateGreenVertices();
         try {
             if(random_tries == 0) {
                 ge.greenExploration(*pt);
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
         } catch (Exception e)
         {
             std::cout << e.m_Msg << "\n";
-            delete carquois;
+            delete quiver;
             return 1;
         }
     }
@@ -169,13 +169,13 @@ int main(int argc, char **argv)
     {
         explorator = new MutExploratorSeq();
         try {
-        mutationClassSize = explorator->isomorphismExplorator(*carquois,5000);
+        mutationClassSize = explorator->isomorphismExplorator(*quiver,5000);
         std::cout << "Set Size:" << mutationClassSize << "\n";
-        explorator->getNbVoisinsMax();
+        explorator->getNbNeighboursMax();
         if(vm.count("dump-class")) {
             explorator->dumpFiles((vm["dump-class"].as<std::string>()).c_str());
         }
-        if(explorator->acyclique()) {
+        if(explorator->isAcyclic()) {
             std::cout << "The mutation class is acyclic !\n";
         }
         else
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
         delete explorator;
     }
     if(!vm.count("pefile")) {
-        delete carquois;
+        delete quiver;
     }
     delete pt;
     return 0;
