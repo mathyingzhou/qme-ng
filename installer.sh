@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 export QME_NG_PATH = $PWD
 cd ..
 curl -o gmp.tar.bz2 -k https://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.bz2
@@ -16,5 +16,6 @@ cp -a /boost_1_66_0/. /usr/local/boost
 cd boost_1_66_0
 sudo ./bootstrap.sh —-prefix=/usr/local/boost
 sudo ./b2 install
+install_name_tool -change libboost_program_options.dylib /usr/local/lib/libboost_program_options.dylib qme-ng
 cd $QME_NG_PATH
 make all
