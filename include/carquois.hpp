@@ -24,6 +24,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+/* Ying Zhou's notes:
+* In essence this quiver (in French Carquois) file does not really depend on anything..except for Exception.h which does not
+* count...
+*/
 #ifndef CARQUOIS_H
 #define CARQUOIS_H
 
@@ -48,10 +52,10 @@
 #define ATILDE 3
 #define DTILDE 4
 #define ETILDE 5
-#define SPORADIQUE 6
+#define SPORADIQUE 6 /*Sporadic?*/
 #define UNAMED 7
-#define E_ELIPTIQUE 8
-#define ATILDEALT 9
+#define E_ELIPTIQUE 8 /*E_Elliptic?*/
+#define ATILDEALT 9 
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 
@@ -59,42 +63,47 @@ class Carquois
 {
 	public:
 
-		/* Constructeurs et Destructeurs */
-		Carquois(int n);
-		Carquois();
-		Carquois(int type, int nbSommets, int orientation=0);
-		Carquois(const Carquois &ca);
-		Carquois(const Carquois &ca, int k);
-		Carquois(int ** matrice, int n,int indice);
-		Carquois(const char* file);
-		~Carquois();
+		/* Constructeurs et Destructeurs/Constructors and Destructors */
+		Carquois(int n);/*Construct a quiver given number of vertices?*/
+		Carquois();/*Construct a quiver given nothing?*/
+		Carquois(int type, int nbSommets, int orientation=0);/*Sommets = sources?*/
+		Carquois(const Carquois &ca);/*Quiver copying?*/
+		Carquois(const Carquois &ca, int k);/*Copy a part of a quiver?*/
+		Carquois(int ** matrice, int n,int indice);/*Given a matrice = matrix, num of vertices and what..*/
+		Carquois(const char* file);/*Read a quiver from .qmu?*/
+		~Carquois();/*Destructor*/
 
-		/* Algorithmes */
-		void mutate(int k);
-		bool infinite();
-		void genGraph();
-		bool testInfiniEmpirique(int mutations);
-		void toFile(const char* filename);
-		void semiDestroy();
-		int getNbVoisinsMax();
-		int estConnexe();
-		bool aUneDouble(int i);
-		bool troisCycleOriente(int i, int j, int k);
-		bool cyclique();
+		/* Algorithmes/Algorithms */
+		void mutate(int k);/*Do mutation at vertex k?*/
+		bool infinite();/*Is this green sequence infinite?*/
+		void genGraph();/*Generate a graph (or quiver?)*/
+		bool testInfiniEmpirique(int mutations);/*Test whether a green sequence is infinite empirically?*/
+		void toFile(const char* filename);/*Put a quiver into a file?*/
+		void semiDestroy();/*Semi-destroy. Not sure what this means.*/
+		int getNbVoisinsMax();/*get Nb adjacent Max?*/
+		int estConnexe();/*Is connected*/
+		bool aUneDouble(int i);/*a double? What's this?*/
+		bool troisCycleOriente(int i, int j, int k);/*Oriented 3-cycle?*/
+		bool cyclique();/*Is cyclic?*/
 
-		/* Affichage */
-		void affiche();
+		/* Affichage/Viewing?*/
+		void affiche();/*Post (to the screen)?*/
 		void printMutations();
 
-		/* Getters et Setters */
-		void setM(int i, int j, int val);
+		/* Getters et Setters/Get and set functions */
+		void setM(int i, int j, int val);/*Set M[i][j] as val.*/
 		/*
 		But: Getter pour la matrice d'incidence
 		Entrée: 2 entiers i et j
 		Sortie: un entier
 		Précondition: i et j compris entre 0 et n-1
 		PostCondition: return M[i][j] si i et j conformes, sinon jette une exception
-
+		
+		Goal: Get an entry of the incidence matrix
+		Input: 2 integers i and j
+		Output: an integer
+		Precondition : i and j between 0 and n-1
+		Postcondition : return M [i] [j] if i and j are within bounds, otherwise throws an exception
 		*/
 		inline int getM(int i, int j)
 		{
@@ -102,7 +111,7 @@ class Carquois
 				return M[i][j];
 			else
 			{
-				throw Exception("ERREUR_DOMAINE: getM");
+				throw Exception("ERREUR_DOMAINE/DOMAIN_ERROR: getM");/*Domain error*/
 			}
 		}
 		inline int getN()
@@ -117,8 +126,9 @@ class Carquois
 		inline int lastMutation()
 		{
 			return (mutations.size()>0)?mutations[mutations.size()-1]:-1;
+			/*If any mutation has been done give the last mutation. Otherwise return -1.*/
 		}
-		inline int graphEstAJour()
+		inline int graphEstAJour()/*graph a day?? Not sure what this means*/
 		{
 			return graphAJour;
 		}
@@ -141,10 +151,10 @@ class Carquois
 			nextJ = j;
 		}
 		
-		/* Getter avancés pour raisonnements locaux */
-		std::vector<int> getVoisins(int sommet);
-		std::vector<int> getVoisinsDoubles(int sommet);
-		std::vector<int> getVoisinsSimples(int sommet);
+		/* Getter avancés pour raisonnements locaux/Advanced get functions for local reasoning (What?)*/
+		std::vector<int> getVoisins(int sommet);/*Get neighbor with source as input?*/
+		std::vector<int> getVoisinsDoubles(int sommet);/*Get double neighbor with source as input?*/
+		std::vector<int> getVoisinsSimples(int sommet);/*Get simple neighbor with source as input?*/
 		std::vector<int> getVoisinsSimplesPredecesseurs(int sommet);
 		std::vector<int> getVoisinsSimplesSuccesseurs(int sommet);
 		std::vector<int> getSommetsArreteDoubleEntrante();
@@ -154,22 +164,22 @@ class Carquois
 		int getNbVoisinsSimplesSuccesseurs(int sommet);
 
 	private:
-		int **M;
-		int n;
-		int valeurAbs(int k);
-		int graphAJour;
-		std::vector<int> mutations;
-		int score;
-		void genScore();
-		int semifree;
-		int nbVoisinsMax;
-		int connexe;
-		int nextI;
-		int nextJ;
-	    graph nautyG[MAXN*MAXM];
-		graph nautyGC[MAXN*MAXM];
-		set *gv;
-       	bool exploreCycle(int *,int);
+		int **M;/*The B-matrix?*/
+		int n;/*Number of vertices?*/
+		int valeurAbs(int k);/*AbsValue, take absolute value.*/
+		int graphAJour;/*??*/
+		std::vector<int> mutations;/*List of previous mutations?*/
+		int score;/*??*/
+		void genScore();/*??*/
+		int semifree;/*??*/
+		int nbVoisinsMax;/*??*/
+		int connexe;/*neighbor?*/
+		int nextI;/*??*/
+		int nextJ;/*??*/
+	    graph nautyG[MAXN*MAXM]; /*Some nauty object??*/
+		graph nautyGC[MAXN*MAXM];/*Some nauty object??*/
+		set *gv;/*??*/
+       	bool exploreCycle(int *,int);/*??*/
 
 };
 #endif
