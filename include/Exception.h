@@ -36,7 +36,7 @@
 	
 	inline void Abstract()
 	{
-		throw Exception("Appel à fonction abstraite");
+        throw Exception("ERROR: Attempt to call an abstract function.");
 	}
 
 

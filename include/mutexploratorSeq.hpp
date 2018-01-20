@@ -35,11 +35,11 @@ class MutExploratorSeq : public MutExplorator
 		MutExploratorSeq();
 		~MutExploratorSeq();
 		void reprise(const char* file);
-		int isomorphismExplorator(Carquois depart, int granularite);
-		int getNbVoisinsMax();
-		int estDansClasseDeMutation(Carquois test, Carquois depart);
+		int isomorphismExplorator(Quiver depart, int granularite);
+		int getNbNeighboursMax();
+		int estDansClasseDeMutation(Quiver test, Quiver depart);
 		int checkpoint();
-		bool acyclique();
+		bool isAcyclic();
 		int dumpFiles(const char* prefix);
 	private:
 		int resume;

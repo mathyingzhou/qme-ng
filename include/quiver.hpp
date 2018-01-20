@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2012, Joris Calabrese, 
  *                          Grégoire Dupont, 
  *                          Matthieu Pérotin
+ *                2018, Ying Zhou
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,22 +53,36 @@
 #define UNAMED 7
 #define E_ELIPTIQUE 8
 #define ATILDEALT 9
+#define B 10
+#define C 11
+#define F 12
+#define G 13
+#define ATILDE14 14
+#define BTILDE 15
+#define CTILDE 16
+#define BCTILDE 17
+#define BDTILDE 18
+#define CDTILDE 19
+#define FTILDE41 20
+#define FTILDE42 21
+#define GTILDE21 22
+#define GTILDE22 23
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 
-class Carquois
+class Quiver
 {
 	public:
 
 		/* Constructeurs et Destructeurs */
-		Carquois(int n);
-		Carquois();
-		Carquois(int type, int nbSommets, int orientation=0);
-		Carquois(const Carquois &ca);
-		Carquois(const Carquois &ca, int k);
-		Carquois(int ** matrice, int n,int indice);
-		Carquois(const char* file);
-		~Carquois();
+		Quiver(int n);
+		Quiver();
+		Quiver(int type, int nbVertices, int orientation=0);
+		Quiver(const Quiver &ca);
+		Quiver(const Quiver &ca, int k);
+		Quiver(int ** matrix, int n,int indice);
+		Quiver(const char* file);
+		~Quiver();
 
 		/* Algorithmes */
 		void mutate(int k);
@@ -76,33 +91,34 @@ class Carquois
 		bool testInfiniEmpirique(int mutations);
 		void toFile(const char* filename);
 		void semiDestroy();
-		int getNbVoisinsMax();
-		int estConnexe();
-		bool aUneDouble(int i);
-		bool troisCycleOriente(int i, int j, int k);
-		bool cyclique();
+		int getNbNeighboursMax();
+		int isConnected();
+		bool aUneDouble(int vertex);
+		bool isOrientedThreeCycle(int i, int j, int k);
+		bool isCyclic();
 
-		/* Affichage */
-		void affiche();
+		/* Printing */
+		void print();
 		void printMutations();
 
-		/* Getters et Setters */
+		/* Getters and Setters */
 		void setM(int i, int j, int val);
 		/*
-		But: Getter pour la matrice d'incidence
+		But: Getter pour la matrix d'incidence
 		Entrée: 2 entiers i et j
 		Sortie: un entier
 		Précondition: i et j compris entre 0 et n-1
 		PostCondition: return M[i][j] si i et j conformes, sinon jette une exception
 
 		*/
+        //get b_{i+1,j+1}
 		inline int getM(int i, int j)
 		{
 			if(i<n && j < n && i>=0 && j>=0)
 				return M[i][j];
 			else
 			{
-				throw Exception("ERREUR_DOMAINE: getM");
+				throw Exception("DOMAIN_ERROR: getM");
 			}
 		}
 		inline int getN()
@@ -118,7 +134,7 @@ class Carquois
 		{
 			return (mutations.size()>0)?mutations[mutations.size()-1]:-1;
 		}
-		inline int graphEstAJour()
+		inline int graphIsAJour()
 		{
 			return graphAJour;
 		}
@@ -142,28 +158,28 @@ class Carquois
 		}
 		
 		/* Getter avancés pour raisonnements locaux */
-		std::vector<int> getVoisins(int sommet);
-		std::vector<int> getVoisinsDoubles(int sommet);
-		std::vector<int> getVoisinsSimples(int sommet);
-		std::vector<int> getVoisinsSimplesPredecesseurs(int sommet);
-		std::vector<int> getVoisinsSimplesSuccesseurs(int sommet);
-		std::vector<int> getSommetsArreteDoubleEntrante();
-		int getSommetOrigineArreteDouble(int i);
-		std::vector<int> getSommetsPasDArreteDouble();
-		int getNbVoisinsSimplesPredecesseurs(int sommet);
-		int getNbVoisinsSimplesSuccesseurs(int sommet);
+		std::vector<int> getNeighbours(int vertex);
+		std::vector<int> getNeighboursDoubles(int vertex);
+		std::vector<int> getNeighboursSimples(int vertex);
+		std::vector<int> getNeighboursSimplesPredecesseurs(int vertex);
+		std::vector<int> getNeighboursSimplesSuccesseurs(int vertex);
+		std::vector<int> getVertexsDoubleEdgeEntrante();
+		int getVertexOrigineDoubleEdge(int i);
+		std::vector<int> getVertexsPasDDoubleEdge();
+		int getNbNeighboursSimplesPredecesseurs(int vertex);
+		int getNbNeighboursSimplesSuccesseurs(int vertex);
 
 	private:
-		int **M;
-		int n;
-		int valeurAbs(int k);
+		int **M;//The exchange matrix
+		int n;//The number of vertices
+		int absVal(int k);//Take the absolute value
 		int graphAJour;
 		std::vector<int> mutations;
 		int score;
 		void genScore();
 		int semifree;
-		int nbVoisinsMax;
-		int connexe;
+		int nbNeighboursMax;
+		int connected;
 		int nextI;
 		int nextJ;
 	    graph nautyG[MAXN*MAXM];

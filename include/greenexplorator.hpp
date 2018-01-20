@@ -56,7 +56,7 @@ class GreenExplorator
         inline void setMaxDepth(int value) { max_depth = value;};
 		
 	protected:
-		Carquois *carquois;
+		Quiver *quiver;
 		std::list<PrincipalExtension> c;
 		std::list<PrincipalExtension> cemetary;
 		int generateMutations(PrincipalExtension &pe);

@@ -40,7 +40,7 @@
 #include <stdint.h>
 #include <gmpxx.h>
 #include "Exception.h"
-#include "carquois.hpp"
+#include "quiver.hpp"
 #include "nautinv.h"
 
 
@@ -49,22 +49,22 @@ typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 class PrincipalExtension
 {
 	public:
-		PrincipalExtension(Carquois c);
+		PrincipalExtension(Quiver c);
 		PrincipalExtension(const char* file);
 		~PrincipalExtension();
 		PrincipalExtension(const PrincipalExtension &ca);
 		int mutate(int k, mpz_class p);
-		void affiche();
+		void print();
 		bool infinite(mpz_class p);
 		void toFile(const char* filename);
 		void printMutations(int s);
 		void printMutationsE(int s);
 		void genGraph();
 
-		/* Getters et Setters */
+		/* Getters and Setters */
 		void setM(int i, int j, mpz_class val);
 		/*
-		But: Getter pour la matrice d'incidence
+		But: Getter pour la matrix d'incidence
 		Entrée: 2 entiers i et j
 		Sortie: un entier
 		Précondition: i et j compris entre 0 et n-1
@@ -77,25 +77,25 @@ class PrincipalExtension
 				return M[i*n+j];
 			else
 			{
-				throw Exception("ERREUR_DOMAINE: getM");
+				throw Exception("DOMAIN_ERROR: getM");
 			}
 		}
 		inline int getN()
 		{
 			return n;
 		}
-		inline int getNbSommetsNauty()
+		inline int getNbVertexsNauty()
         {
-            return nbSommetsNauty;
+            return nbVertexsNauty;
         }
 		inline int lastMutation()
 		{
 			return (mutations.size()>0)?mutations[mutations.size()-1]:-1;
 		}
-		void generateSommetsVerts();
-		int getNextSommetVert();
+		void generateGreenVertices();
+		int getNextGreenVertex();
 		int getRandomGreenVertex();
-		void forceSommetVert(int s);
+		void forceGreenVertex(int s);
 		inline bool getGraphAJour()
 		{
 			return graphAJour;
@@ -151,7 +151,7 @@ class PrincipalExtension
         {
             return mutationsSize;
         }
-		Carquois *getCarquois(void);
+		Quiver *getQuiver(void);
 		graph *getNautyGraph();
         std::string mutationsToString();
         void shiftMultiplicities();
@@ -160,11 +160,11 @@ class PrincipalExtension
 	private:
 		mpz_class *M;
 		int n;
-		int nbSommetsNauty;
+		int nbVertexsNauty;
 		std::map<uint64_t,mpz_class> multiplicity;
         std::map<mpz_class,mpz_class> multiplicities;
 		std::vector<int> mutations;
-		std::vector<int> sommetsVerts;
+		std::vector<int> greenVertices;
         graph nautyG[MAXN*MAXM];
 		graph nautyGC[MAXN*MAXM];
 		set *gv;

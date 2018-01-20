@@ -32,16 +32,16 @@
 #include <vector>
 #include <limits.h>
 #include "Exception.h"
-#include "carquois.hpp"
+#include "quiver.hpp"
 
-typedef int ** matrice;
+typedef int ** matrix;
 
 typedef struct infoMat derMat;
 struct infoMat{
-	matrice *matriceC;
+	matrix *matrixC;
 	int taille;
-	int sommet;
-	int carquois;
+	int vertex;
+	int quiver;
 };
 
 class MutExplorator
@@ -49,11 +49,11 @@ class MutExplorator
 	public:
 		MutExplorator();
 		~MutExplorator();
-		virtual int isomorphismExplorator(Carquois depart,int granularite) = 0;
+		virtual int isomorphismExplorator(Quiver depart,int granularite) = 0;
 		void printArbre();
-		void insertInList(Carquois *carquois);
-		bool estDansC(Carquois *carquois);
-		Carquois getRepresentant();
+		void insertInList(Quiver *quiver);
+		bool estDansC(Quiver *quiver);
+		Quiver getRepresentant();
 		void clearC();
 		int getModeCmp();
 		inline int getCSize()
@@ -62,11 +62,11 @@ class MutExplorator
 		}
 		
 	protected:
-		Carquois *carquois;
-		std::vector<Carquois> c;
-		void generateMutations(Carquois carquois);
+		Quiver *quiver;
+		std::vector<Quiver> c;
+		void generateMutations(Quiver quiver);
 		/* Fonction utilisant l'algorithme de Brendam McKay */
-		bool myIsomorphismNauty(Carquois *a, Carquois *b);
+		bool myIsomorphismNauty(Quiver *a, Quiver *b);
 		int modeComparaison;
 		
 };
