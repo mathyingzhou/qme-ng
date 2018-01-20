@@ -33,7 +33,7 @@ MutExplorator::~MutExplorator()
 }
 void MutExplorator::printArbre()
 {
-	std::vector<Carquois>::iterator i;
+	std::vector<Quiver>::iterator i;
 	int j=0;
 	for(i=c.begin();i!=c.end();i++)
 	{
@@ -41,9 +41,9 @@ void MutExplorator::printArbre()
 		i->printMutations();
 	}
 }
-Carquois MutExplorator::getRepresentant()
+Quiver MutExplorator::getRepresentant()
 {
-	std::vector<Carquois>::iterator i,j;
+	std::vector<Quiver>::iterator i,j;
 	int meilleurScore = INT_MAX;
 	for(i=c.begin();i!=c.end();i++)
 	{
@@ -61,21 +61,21 @@ void MutExplorator::clearC()
 	c.clear();
 }
 		
-void MutExplorator::generateMutations(Carquois carquois)
+void MutExplorator::generateMutations(Quiver quiver)
 {
 	int i;
-	Carquois c = carquois;
+	Quiver c = quiver;
 	#ifdef DEBUG
 	std::cout << "Travail avec "; c.printMutations();
 	#endif
-	for(i=0;i<carquois.getN();i++)
+	for(i=0;i<quiver.getN();i++)
 	{
 		if(i==c.lastMutation())
 		{
 			// No need to mutate twice on the same vertex
 			continue;
 		}
-		if(i<c.lastMutation() && carquois.getM(i,c.lastMutation()) == 0)
+		if(i<c.lastMutation() && quiver.getM(i,c.lastMutation()) == 0)
 		{
 			/* A very difficult optimization here... I should have commented
 			 * 3 years ago !
@@ -104,7 +104,7 @@ void MutExplorator::generateMutations(Carquois carquois)
 		#ifdef DEBUG
 		std::cout << "Analyse de ";
 		c.printMutations();
-		//c.affiche();
+		//c.print();
 		#endif
 		insertInList(&c);
 		c.mutate(i);
@@ -113,20 +113,20 @@ void MutExplorator::generateMutations(Carquois carquois)
 	std::cout << "Fin du travail avec "; c.printMutations();	
 	#endif
 }
-void MutExplorator::insertInList(Carquois *carquois)
+void MutExplorator::insertInList(Quiver *quiver)
 {
-	std::vector<Carquois>::iterator i; 
-	std::vector<Carquois>::reverse_iterator ri;
-	carquois->genGraph();
+	std::vector<Quiver>::iterator i; 
+	std::vector<Quiver>::reverse_iterator ri;
+	quiver->genGraph();
 
 	if(modeComparaison == 1)
 	{
 		i=c.begin();
-		if(myIsomorphismNauty(carquois,&(*i)))
+		if(myIsomorphismNauty(quiver,&(*i)))
 		{
-			std::cout << "Le carquois appartient à la classe de mutation !";
+			std::cout << "Le quiver appartient à la classe de mutation !";
 			std::cout << "\t Mutations:";
-			carquois->printMutations();
+			quiver->printMutations();
 			throw Exception("Done.");
 		
 		}
@@ -134,10 +134,10 @@ void MutExplorator::insertInList(Carquois *carquois)
 	// ri is a reverse iterator, it browse the list from the end
 	for(ri=c.rbegin();ri!=c.rend();ri++)
 	{
-        if(myIsomorphismNauty(carquois,&(*ri)))
+        if(myIsomorphismNauty(quiver,&(*ri)))
         {
             #ifdef DEBUG
-                carquois->printMutations(); 
+                quiver->printMutations(); 
                 std::cout << "est isomorphe à  "; 
                 (*ri).printMutations(); 
                 std::cout << "\n";
@@ -150,10 +150,10 @@ void MutExplorator::insertInList(Carquois *carquois)
 	// ismomorph to any quiver in already in the list, so we add it
 	if(ri==c.rend())
 	{
-		c.push_back(*carquois);
+		c.push_back(*quiver);
 		#ifdef DEBUG
 			std::cout << "Ajout de ";
-			carquois->printMutations();
+			quiver->printMutations();
 			std::cout << "\n";
 		#endif
 		
@@ -162,7 +162,7 @@ void MutExplorator::insertInList(Carquois *carquois)
 
 /* Détection d'isomorphismes en utilisant nauty (algo polynomial de detection
    d'isomorphisme*/
-bool MutExplorator::myIsomorphismNauty(Carquois *a, Carquois *b)
+bool MutExplorator::myIsomorphismNauty(Quiver *a, Quiver *b)
 {
 	int i;
 	int n = a->getN();
@@ -186,22 +186,22 @@ int MutExplorator::getModeCmp()
 	return modeComparaison;
 }
 
-bool MutExplorator::estDansC(Carquois *carquois)
+bool MutExplorator::estDansC(Quiver *quiver)
 {
-	std::vector<Carquois>::reverse_iterator ri;
-	carquois->genGraph();
+	std::vector<Quiver>::reverse_iterator ri;
+	quiver->genGraph();
 	for(ri=c.rbegin();ri!=c.rend();ri++)
 	{
-		if(!ri->graphEstAJour())
+		if(!ri->graphIsAJour())
 			ri->genGraph();
-		if(ri->getN()!=carquois->getN())
+		if(ri->getN()!=quiver->getN())
 			break;
 		else 
 		{
-			if(myIsomorphismNauty(carquois,&(*ri)))
+			if(myIsomorphismNauty(quiver,&(*ri)))
 			{
 				#ifdef DEBUG
-					carquois->printMutations(); 
+					quiver->printMutations(); 
 					std::cout << "est isomorphe à  "; 
 					(*ri).printMutations(); 
 					std::cout << "\n";

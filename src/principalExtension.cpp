@@ -39,20 +39,20 @@ PrincipalExtension::PrincipalExtension(const PrincipalExtension &ca)
                 M[i*n+j]=mpz_class(ca.M[i*n+j]);
     }
     mutationString = ca.mutationString;
-    this->sommetsVerts = ca.sommetsVerts;    
+    this->greenVertices = ca.greenVertices;    
     this->graphAJour = ca.graphAJour;
     multiplicity=ca.multiplicity;
     if(ca.graphAJour)
     {
-        this->nbSommetsNauty = ca.nbSommetsNauty;
+        this->nbVertexsNauty = ca.nbVertexsNauty;
         multiplicities = ca.multiplicities;
-        for(i=0;i<this->nbSommetsNauty;i++)
+        for(i=0;i<this->nbVertexsNauty;i++)
             nautyGC[i]=ca.nautyGC[i];
     }
     
 }
 
-PrincipalExtension::PrincipalExtension(Carquois c)
+PrincipalExtension::PrincipalExtension(Quiver c)
 {
     int i,j;
     this->n = 2 * c.getN();
@@ -74,7 +74,7 @@ PrincipalExtension::PrincipalExtension(Carquois c)
 
 PrincipalExtension::PrincipalExtension(const char *file)
 {
-    std::string contenu,ligne;
+    std::string contents,line;
     std::ifstream f(file);
     boost::char_separator<char> sep(",[] \t;");
     std::vector<mpz_class> val;
@@ -85,32 +85,32 @@ PrincipalExtension::PrincipalExtension(const char *file)
     bool qmu = false;
     if(!f)
         throw Exception("ERROR: cannot open file !");
-    std::getline (f, ligne);
-    if(ligne == "//Number of points")
+    std::getline (f, line);
+    if(line == "//Number of points")
     {
         std::cout << "qmu file format detected !" << std::endl;
         qmu = true;
-        while(ligne != "//Matrix")
-            std::getline(f,ligne);
-        std::getline(f,ligne);
-        std::getline(f,ligne);
+        while(line != "//Matrix")
+            std::getline(f,line);
+        std::getline(f,line);
+        std::getline(f,line);
     }
     
     while(!f.eof())
     {
         
-        contenu+=ligne;
-        std::getline(f,ligne);
+        contents+=line;
+        std::getline(f,line);
         // Keller's new file format ends matrix definition by "Traffic lights"
         // the old file format ends it with "Points"
         // We keep both tests for retro compatibility
-        if(qmu && (ligne == "//Traffic lights" || ligne == "//Points"))
+        if(qmu && (line == "//Traffic lights" || line == "//Points"))
         {
             break;
         }
         
     }
-    tokenizer tokens(contenu, sep);
+    tokenizer tokens(contents, sep);
     for (tokenizer::iterator tok_iter = tokens.begin();
          tok_iter != tokens.end(); ++tok_iter)
     {
@@ -153,7 +153,7 @@ void PrincipalExtension::semiDestroy()
     delete[] this->M;
     this->genGraph();
     multiplicity.clear();
-    sommetsVerts.clear();
+    greenVertices.clear();
     mutationString = this->mutationsToString();
     mutations.clear();
     semiFreed = true;
@@ -161,19 +161,19 @@ void PrincipalExtension::semiDestroy()
 
 
 /*
-But: Appliquer la fonction de mutation sur un sommet du graphe
-Entrée: en entier k correspondant à un des sommets du graphe
+But: Appliquer la fonction de mutation sur un vertex du graphe
+Entrée: en entier k correspondant à un des vertexs du graphe
 Sortie: Néant
-PréCondition: k est un sommet du graphe (=> k>=0 et k<n)
-PostCondition: La fonction \mu_k est appliquée au carquois
+PréCondition: k est un vertex du graphe (=> k>=0 et k<n)
+PostCondition: La fonction \mu_k est appliquée au quiver
 */
 
 int PrincipalExtension::mutate(int k, mpz_class p)
 {
     int i,j;
-    int dernierElement;
+    int lastMutatedVertex;
     int infinite = 0;
-    // On ne fait rien si k ne correspond pas à un sommet du graphe
+    // On ne fait rien si k ne correspond pas à un vertex du graphe
     if(k<0 || k>= this->n)
         return -1;
             
@@ -200,7 +200,7 @@ int PrincipalExtension::mutate(int k, mpz_class p)
     }
 
     /*
-        On met à jour les mutations qui ont été appliquées sur le carquois
+        On met à jour les mutations qui ont été appliquées sur le quiver
         Si la mutation appliquée est la même que la dernière qui avait été appliquée:
             alors on a appliqué deux fois la même, ce qui revient à ne pas l'appliquer, on l'efface de la liste
         Sinon
@@ -210,8 +210,8 @@ int PrincipalExtension::mutate(int k, mpz_class p)
     
     if(!mutations.empty())
     {
-        dernierElement = mutations.back();
-        if(dernierElement == k)
+        lastMutatedVertex = mutations.back();
+        if(lastMutatedVertex == k)
         {
             mutations.pop_back();
             this->unshiftMultiplicities();
@@ -231,11 +231,11 @@ int PrincipalExtension::mutate(int k, mpz_class p)
         this->shiftMultiplicities();
         mutationsSize++;
     }
-    sommetsVerts.clear();
-    this->generateSommetsVerts();
+    greenVertices.clear();
+    this->generateGreenVertices();
     this->graphAJour = false;
     mutationString = "";
-    if(sommetsVerts.size() == 0) { return 1;}
+    if(greenVertices.size() == 0) { return 1;}
     else { return 2;}    
 }
 
@@ -246,7 +246,7 @@ void PrincipalExtension::setM(int i, int j, mpz_class val)
         M[i*n+j]=val;
     }
     else
-        throw Exception("ERREUR_DOMAINE: setM");
+        throw Exception("DOMAIN_ERROR: setM");
     
     
 }
@@ -309,10 +309,10 @@ void PrincipalExtension::printMutationsE(int s)
 
 
 
-void PrincipalExtension::generateSommetsVerts()
+void PrincipalExtension::generateGreenVertices()
 {
     int i,j,c;
-    sommetsVerts.clear();
+    greenVertices.clear();
     for(i=0;i<n/2;i++)
     {
         c=0;
@@ -324,29 +324,29 @@ void PrincipalExtension::generateSommetsVerts()
             }    
         }
         if(c==0) {
-            sommetsVerts.push_back(i);
+            greenVertices.push_back(i);
         }
     }
 }
 
-void PrincipalExtension::forceSommetVert(int s)
+void PrincipalExtension::forceGreenVertex(int s)
 {
-    sommetsVerts.push_back(s);
+    greenVertices.push_back(s);
 }
 
 
-int PrincipalExtension::getNextSommetVert()
+int PrincipalExtension::getNextGreenVertex()
 {
     int ret;
-    if(sommetsVerts.size() == 0) { return -1;}
+    if(greenVertices.size() == 0) { return -1;}
     #ifdef DEBUG
         std::vector<int>::iterator it;
-        std::cout << "sommetsV: ";
-        for(it=sommetsVerts.begin();it!=sommetsVerts.end();it++) { std::cout << (*it) << ",";}
+        std::cout << "vertexsV: ";
+        for(it=greenVertices.begin();it!=greenVertices.end();it++) { std::cout << (*it) << ",";}
         std::cout << std::endl;
     #endif
-    ret = sommetsVerts.back();
-    sommetsVerts.pop_back();
+    ret = greenVertices.back();
+    greenVertices.pop_back();
     return ret;
 }
 
@@ -354,33 +354,33 @@ int PrincipalExtension::getRandomGreenVertex()
 {
     int ret;
     int pos;
-    if(sommetsVerts.size() == 0) { return -1;}
+    if(greenVertices.size() == 0) { return -1;}
     #ifdef DEBUG
         std::vector<int>::iterator it;
-        std::cout << "sommetsV: ";
-        for(it=sommetsVerts.begin();it!=sommetsVerts.end();it++) { std::cout << (*it) << ",";}
+        std::cout << "vertexsV: ";
+        for(it=greenVertices.begin();it!=greenVertices.end();it++) { std::cout << (*it) << ",";}
         std::cout << std::endl;
     #endif
-    if(sommetsVerts.size() == 0) { return -1;}
-    pos = ((double)rand() / RAND_MAX)*(sommetsVerts.size());
-    ret = sommetsVerts[pos];
-    sommetsVerts.erase(sommetsVerts.begin()+pos);
+    if(greenVertices.size() == 0) { return -1;}
+    pos = ((double)rand() / RAND_MAX)*(greenVertices.size());
+    ret = greenVertices[pos];
+    greenVertices.erase(greenVertices.begin()+pos);
     return ret;
 }
 
-Carquois *PrincipalExtension::getCarquois(void)
+Quiver *PrincipalExtension::getQuiver(void)
 {
-    return new Carquois(n);
+    return new Quiver(n);
 }
 
 /*
-But: Afficher la matrice d'incidence sur la sortie standard
+But: Afficher la matrix d'incidence sur la sortie standard
 Entrée: Néant
 Sortie: Néant
 Précondition: Néant
-PostCondition: La matrice d'incidence est affichée sur la sortie standard
+PostCondition: La matrix d'incidence est affichée sur la sortie standard
 */
-void PrincipalExtension::affiche()
+void PrincipalExtension::print()
 {
     int i,j;
     for(i=0;i<this->n;i++)
@@ -423,39 +423,39 @@ void PrincipalExtension::genGraph()
         }
     // 2. On with graph construction...
 
-        nbSommetsNauty = 0;
+        nbVertexsNauty = 0;
         nbSN_tmp = 0;
         for(mul_it=multiplicities.begin();mul_it!=multiplicities.end();mul_it++)
         {
-            multiplicities_index[mul_it->first]=nbSommetsNauty;
+            multiplicities_index[mul_it->first]=nbVertexsNauty;
             nbSN_tmp += mul_it->second;
             if(nbSN_tmp.fits_sint_p()) {
-                nbSommetsNauty = nbSommetsNauty + mul_it->second.get_si();
+                nbVertexsNauty = nbVertexsNauty + mul_it->second.get_si();
             }
             else
             {
-                throw Exception("Wrap nbSommetsNauty!");
+                throw Exception("Wrap nbVertexsNauty!");
             }
         }
 
         nbSN_tmp += this->n;
         if(nbSN_tmp.fits_sint_p()) {
-            nbSommetsNauty += this->n;
+            nbVertexsNauty += this->n;
         }
         else
         {
-            throw Exception("Wrap nbSommetsNauty!");
+            throw Exception("Wrap nbVertexsNauty!");
         }
 
-        m=(nbSommetsNauty + WORDSIZE - 1)/WORDSIZE;
+        m=(nbVertexsNauty + WORDSIZE - 1)/WORDSIZE;
 
-        /* Si on trouve une valeur strictement positive dans la matrice d'incidence, alors on ajoute une arrête dans notre graphe */
-        for(i=0;i<nbSommetsNauty;i++)
+        /* Si on trouve une valeur strictement positive dans la matrix d'incidence, alors on ajoute une arrête dans notre graphe */
+        for(i=0;i<nbVertexsNauty;i++)
         {
             gv=GRAPHROW(nautyG,i,m);
             EMPTYSET(gv,m);
         }
-        for(i=0;i<nbSommetsNauty;i++)
+        for(i=0;i<nbVertexsNauty;i++)
         {
             lab1[i]=i;
             ptn[i]=1;
@@ -485,7 +485,7 @@ void PrincipalExtension::genGraph()
                     }
                     else
                     {
-                        throw Exception("Wrap Sommet Nauty 1!");
+                        throw Exception("Wrap Vertex Nauty 1!");
                     }
                     gv=GRAPHROW(nautyG,nbSN_tmp.get_si(),m);
                     ADDELEMENT(gv,j);
@@ -499,7 +499,7 @@ void PrincipalExtension::genGraph()
         options.invarproc = adjacencies;
         options.mininvarlevel = 0;
         options.maxinvarlevel = 99;
-        nauty_check(WORDSIZE,m,nbSommetsNauty,NAUTYVERSIONID);
+        nauty_check(WORDSIZE,m,nbVertexsNauty,NAUTYVERSIONID);
         for(mul_it=multiplicities.begin();mul_it!=multiplicities.end();mul_it++)
         {
             nbSN_tmp = n-1+multiplicities_index[mul_it->first];
@@ -508,14 +508,14 @@ void PrincipalExtension::genGraph()
             }
             else
             {
-                throw Exception("Wrap Sommet Nauty 1!");
+                throw Exception("Wrap Vertex Nauty 1!");
             }
         }
         
         
 
         nauty(nautyG,lab1,ptn,NULL,orbits,&options,&stats,
-                                  workspace,5*MAXM,m,nbSommetsNauty,nautyGC);
+                                  workspace,5*MAXM,m,nbVertexsNauty,nautyGC);
         this->graphAJour=true;    
     }
 }
@@ -523,7 +523,7 @@ void PrincipalExtension::genGraph()
 
 graph *PrincipalExtension::getNautyGraph()
 {
-    Carquois *carquois=NULL;
+    Quiver *quiver=NULL;
     graph *g;
     int i;
     if(!this->graphAJour)

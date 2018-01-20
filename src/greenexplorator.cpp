@@ -58,7 +58,7 @@ int GreenExplorator::generateMutations(PrincipalExtension &pe)
 {
     int i;
     int ret;
-    int sommet;
+    int vertex;
     int create=0;
     unsigned int size;
     std::string mutations_str="";
@@ -72,11 +72,11 @@ int GreenExplorator::generateMutations(PrincipalExtension &pe)
     #ifdef DEBUG
     std::cout << "Travail avec "; pe.printMutationsE(0);
     #endif
-    sommet = pe.getNextSommetVert();
-    if(sommet == -1) {
+    vertex = pe.getNextGreenVertex();
+    if(vertex == -1) {
         return 1;
     }
-    if(sommet==p.lastMutation())
+    if(vertex==p.lastMutation())
     {
         // No need to mutate twice on the same vertex
         return 1;
@@ -84,7 +84,7 @@ int GreenExplorator::generateMutations(PrincipalExtension &pe)
     if(p.getMutationsSize() >= this->max_depth) {
         return 4;
     }
-    ret = p.mutate(sommet, this->p);
+    ret = p.mutate(vertex, this->p);
     if (ret == 0) {
         // if mutate returned 0, then infinity was detected
         return 3;
@@ -302,7 +302,7 @@ void GreenExplorator::greenExploration(PrincipalExtension pe)
     #ifdef DEBUG
     std::cout << "C.size: " << c.size() << " Cem.size: " << cemetary.size() << "\t\t";
     std::cout << "Travail avec "; (*pei).printMutations(0);
-    (*pei).affiche();
+    (*pei).print();
     #endif
         ret = generateMutations(*pei);
         switch(ret) {
@@ -385,15 +385,15 @@ bool GreenExplorator::myIsomorphismNauty(PrincipalExtension &a, PrincipalExtensi
 
     // These two calls must be placed before hand
     // They are responsible for initializing all the other variables of
-    // objects (nbSommetsNauty, multiplicities...)
+    // objects (nbVertexsNauty, multiplicities...)
     c2 = (graph *)a.getNautyGraph();
     c1 = (graph *)b.getNautyGraph();
 
     // This is very different from the number of vertices
     // This is the number of vertices in the nauty graph
     // which depends on the edge multiplicities
-    nbNautyVert = a.getNbSommetsNauty();
-    if(nbNautyVert!=b.getNbSommetsNauty()) { 
+    nbNautyVert = a.getNbVertexsNauty();
+    if(nbNautyVert!=b.getNbVertexsNauty()) { 
         return false;
     }
 

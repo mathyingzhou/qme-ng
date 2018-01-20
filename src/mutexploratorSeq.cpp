@@ -39,12 +39,12 @@ MutExploratorSeq::~MutExploratorSeq()
 
 }
 
-int MutExploratorSeq::isomorphismExplorator(Carquois depart, int granularite)
+int MutExploratorSeq::isomorphismExplorator(Quiver depart, int granularite)
 {
 	
 	int stop=0;
 	int infinite=0;
-	Carquois ct = depart;
+	Quiver ct = depart;
 	int i;
 	if(resume == 0)
 	{
@@ -91,7 +91,7 @@ int MutExploratorSeq::isomorphismExplorator(Carquois depart, int granularite)
 	return c.size();
 }
 
-int MutExploratorSeq::estDansClasseDeMutation(Carquois test, Carquois depart)
+int MutExploratorSeq::estDansClasseDeMutation(Quiver test, Quiver depart)
 {
 	
 	int stop=0;
@@ -102,7 +102,7 @@ int MutExploratorSeq::estDansClasseDeMutation(Carquois test, Carquois depart)
 		modeComparaison = 1;
 		if(test.getN() != depart.getN())
 		{
-			throw Exception("Les deux carquois n'ont pas le meme nombre de sommets !");	
+			throw Exception("Les deux quiver n'ont pas le meme nombre de vertexs !");	
 		}
 		c.push_back(test);
 		insertInList(&depart);
@@ -141,7 +141,7 @@ int MutExploratorSeq::estDansClasseDeMutation(Carquois test, Carquois depart)
 
 int MutExploratorSeq::checkpoint()
 {
-	std::vector<Carquois>::iterator itC;
+	std::vector<Quiver>::iterator itC;
 	std::ofstream ofs ("Out.txt");
 	int i,j,n;
 
@@ -187,7 +187,7 @@ int MutExploratorSeq::checkpoint()
 
 int MutExploratorSeq::dumpFiles(const char* prefix)
 {
-	std::vector<Carquois>::iterator itC;
+	std::vector<Quiver>::iterator itC;
 	std::ofstream *ofs;
 	std::stringstream *filename;
 	int i,j,num,n;
@@ -200,7 +200,7 @@ int MutExploratorSeq::dumpFiles(const char* prefix)
 	while(itC!=c.end())
 	{
 		filename = new std::stringstream;
-		*filename << prefix << "_" << num++ << ".carquois"; 
+		*filename << prefix << "_" << num++ << ".quiver"; 
 		ofs = new std::ofstream((filename->str()).c_str()); 
 		*ofs << "[";
 		n=(*itC).getN();
@@ -226,7 +226,7 @@ int MutExploratorSeq::dumpFiles(const char* prefix)
 
 void MutExploratorSeq::reprise(const char* file)
 {
-	std::string contenu,ligne;
+	std::string contents,line;
 	std::ifstream f(file);
 	boost::char_separator<char> sep(",.[] \t;");
 	std::vector<int> val;
@@ -235,25 +235,25 @@ void MutExploratorSeq::reprise(const char* file)
 	tokenizer *tokens;
 	int i,j;
 	unsigned int n;
-	Carquois *carquois, *c1;
+	Quiver *quiver, *c1;
 	resume = 1;
-	contenu = "";
+	contents = "";
 	std::cout << "Resuming from " << file << "...\n";
 	if(!f)
 		throw Exception("Impossible d'ouvrir le fichier !");
 	
 	// Retrieving index
-	std::getline(f,ligne);
-	iss = new std::istringstream(ligne);
+	std::getline(f,line);
+	iss = new std::istringstream(line);
 	*iss >> index;	
 	// Retrieving first Quiver
-	std::getline (f, ligne);
-	while(ligne != "-" && ligne != "--")
+	std::getline (f, line);
+	while(line != "-" && line != "--")
 	{
-		contenu +=ligne;
-		std::getline(f,ligne);
+		contents +=line;
+		std::getline(f,line);
 	}
-	tokens = new tokenizer(contenu, sep);
+	tokens = new tokenizer(contents, sep);
     	for (tokenizer::iterator tok_iter = tokens->begin();
          tok_iter != tokens->end(); ++tok_iter)
 	{
@@ -267,28 +267,28 @@ void MutExploratorSeq::reprise(const char* file)
 	if(n*n != val.size())
 		throw Exception("Fichier mal formé !");
 
-	carquois = new Carquois(n);
+	quiver = new Quiver(n);
 	for(i=0;i<(int)n;i++)
 		for(j=0;j<(int)n;j++)
-			carquois->setM(i,j,val[i*n+j]);
-	carquois->affiche();
-	carquois->genGraph();
-	c.push_back(*carquois);
+			quiver->setM(i,j,val[i*n+j]);
+	quiver->print();
+	quiver->genGraph();
+	c.push_back(*quiver);
 	// First Quiver retrieved
-	if(ligne == "--")
+	if(line == "--")
 	{
-		delete carquois;
+		delete quiver;
 		std::cout << "Mode Comparaison...\n";
 		modeComparaison = 1;
-		std::getline(f,ligne);
-		contenu = "";
+		std::getline(f,line);
+		contents = "";
 		val.clear();
-		while(ligne != "-" && ligne != "--")
+		while(line != "-" && line != "--")
 		{
-			contenu +=ligne;
-			std::getline(f,ligne);
+			contents +=line;
+			std::getline(f,line);
 		}
-		tokens = new tokenizer(contenu, sep);
+		tokens = new tokenizer(contents, sep);
 	    	for (tokenizer::iterator tok_iter = tokens->begin();
 	         tok_iter != tokens->end(); ++tok_iter)
 		{
@@ -302,13 +302,13 @@ void MutExploratorSeq::reprise(const char* file)
 		if(n*n != val.size())
 			throw Exception("Fichier mal formé !");
 
-		carquois = new Carquois(n);
+		quiver = new Quiver(n);
 		for(i=0;i<(int)n;i++)
 			for(j=0;j<(int)n;j++)
-				carquois->setM(i,j,val[i*n+j]);
-		carquois->affiche();
-		carquois->genGraph();
-		c.push_back(*carquois);
+				quiver->setM(i,j,val[i*n+j]);
+		quiver->print();
+		quiver->genGraph();
+		c.push_back(*quiver);
 	}
 
 
@@ -316,12 +316,12 @@ void MutExploratorSeq::reprise(const char* file)
 	j=2;
 	while(!f.eof())
 	{
-		std::getline(f,ligne);
-		if(ligne == "I")
+		std::getline(f,line);
+		if(line == "I")
 			break;
 		j++;
 		val.clear();
-		tokens = new tokenizer(ligne, sep);
+		tokens = new tokenizer(line, sep);
     		for (tok_iter = tokens->begin();tok_iter != tokens->end(); ++tok_iter)
 		{
 			iss = new std::istringstream(*tok_iter);
@@ -332,48 +332,48 @@ void MutExploratorSeq::reprise(const char* file)
 		delete tokens;
 		for(i=0;i<(int)val.size();i++)
 		{
-			carquois->mutate(val[i]);
+			quiver->mutate(val[i]);
 		}
-		c1 = new Carquois(*carquois);
+		c1 = new Quiver(*quiver);
 		c1->genGraph();
 		c.push_back(*c1);
 		delete c1;
 		for(i=val.size()-1;i>=0;i--)
 		{
-			carquois->mutate(val[i]);
+			quiver->mutate(val[i]);
 		}
 		
 	}
 	f.close ();
 }
 
-int MutExploratorSeq::getNbVoisinsMax()
+int MutExploratorSeq::getNbNeighboursMax()
 {
-	std::vector<Carquois>::iterator itC;
-	int nbVoisinsMax=0;
+	std::vector<Quiver>::iterator itC;
+	int nbNeighboursMax=0;
 	int valTemp;
 	int i=0,index = 0;
 	for(itC=c.begin();itC!=c.end();itC++)
 	{
-		valTemp = itC->getNbVoisinsMax();
-		if( valTemp > nbVoisinsMax)
+		valTemp = itC->getNbNeighboursMax();
+		if( valTemp > nbNeighboursMax)
 		{
 			index = i;
-			nbVoisinsMax = valTemp;
+			nbNeighboursMax = valTemp;
 		}
 		i++;
 	}
-	std::cout << "nbVoisins Max: " << nbVoisinsMax << " found in " << c[index].getMutations() << "\n";
-	return nbVoisinsMax;
+	std::cout << "nbNeighbours Max: " << nbNeighboursMax << " found in " << c[index].getMutations() << "\n";
+	return nbNeighboursMax;
 	
 }
 
-bool MutExploratorSeq::acyclique()
+bool MutExploratorSeq::isAcyclic()
 {
-	std::vector<Carquois>::iterator itC;
+	std::vector<Quiver>::iterator itC;
 	for(itC=c.begin();itC!=c.end();itC++)
 	{
-		if(itC->cyclique() == false)
+		if(itC->isCyclic() == false)
 		{
 			std::cout << "No Cycles in " << itC->getMutations() << "\n";
 			return true;

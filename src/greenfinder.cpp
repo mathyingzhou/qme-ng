@@ -37,7 +37,7 @@ void GreenFinder::find(uint64_t tries)
 {
     int ret;
     int i;
-    int sommet;
+    int vertex;
     int totalTries=tries;
     uint64_t cutMax=0, cutMin=0, cutNoMore=0, cutInf=0;
     PrincipalExtension *pe;
@@ -50,12 +50,12 @@ void GreenFinder::find(uint64_t tries)
                   << " (" << round((totalTries-tries)*10000.0/totalTries)/100
                   << "%)" << std::flush;
         while(true) {
-            sommet = pe->getRandomGreenVertex();
-            if(sommet == -1) {
+            vertex = pe->getRandomGreenVertex();
+            if(vertex == -1) {
                 cutNoMore++;
                 break;
             }
-            if(sommet==pe->lastMutation())
+            if(vertex==pe->lastMutation())
             {
                 // No need to mutate twice on the same vertex
                 continue;
@@ -64,7 +64,7 @@ void GreenFinder::find(uint64_t tries)
                 cutMax++;
                 break;
             }
-            ret = pe->mutate(sommet, this->p);
+            ret = pe->mutate(vertex, this->p);
             if (ret == 0) {
                 // if mutate returned 0, then infinity was detected
                 cutInf++;

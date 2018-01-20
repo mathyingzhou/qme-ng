@@ -30,12 +30,12 @@
 #include "Exception.h"
 /*
 But: Constructeur
-Entrée: un entier n, nombre de sommets du graphe associé
+Entrée: un entier n, nombre de vertexs du graphe associé
 Sortie: Néant
 Précondition: Néant
-PostCondition: les structures de données de l'objet sont allouées, la matrice d'incidence est initialisée à 0, pour tout i, pour tout j
+PostCondition: les structures de données de l'objet sont allouées, la matrix d'incidence est initialisée à 0, pour tout i, pour tout j
 */
-Carquois::Carquois(int n)
+Quiver::Quiver(int n)
 {
     int i,j;
     this->M=(int **)malloc(n*sizeof(int *));
@@ -49,21 +49,21 @@ Carquois::Carquois(int n)
     this->n=n;
     this->graphAJour=0;
     semifree=0;
-    nbVoisinsMax = -1;
-    connexe = -1;
+    nbNeighboursMax = -1;
+    connected = -1;
     nextI=1;
     nextJ=0;
 }
 
 /*
 But: Constructeur par recopie
-Entrée: une référence sur un objet carquois
+Entrée: une référence sur un objet Quiver
 Sortie: Néant
 Précondition: Néant
 PostCondition: les structures de données et les données de l'objet sont sont recopiées
 */
 
-Carquois::Carquois(const Carquois &ca)
+Quiver::Quiver(const Quiver &ca)
 {
     int i,j;
     n=ca.n;
@@ -90,8 +90,8 @@ Carquois::Carquois(const Carquois &ca)
             nautyGC[i]=ca.nautyGC[i];
     }
     
-    this->nbVoisinsMax = ca.nbVoisinsMax;
-    this->connexe = ca.connexe;
+    this->nbNeighboursMax = ca.nbNeighboursMax;
+    this->connected = ca.connected;
     this->nextI = ca.nextI;
     this->nextJ = ca.nextJ;
     
@@ -99,16 +99,16 @@ Carquois::Carquois(const Carquois &ca)
 
 /*
 But: Constructeur par recopie et augmentation
-Entrée: une référence sur un objet carquois, un entier k
+Entrée: une référence sur un objet Quiver, un entier k
 Sortie: Néant
 Précondition: Néant
-PostCondition: les structures de données et les données de l'objet sont recopiées dans un carquois de taille n+k
-    /!\     Le Carquois construit n'est pas connexe !
-        Il est nécessaire d'appeler connecter(i) pour obtenir un carquois connexe obtenu en reliant le sommet i à
+PostCondition: les structures de données et les données de l'objet sont recopiées dans un Quiver de taille n+k
+    /!\     Le Quiver construit n'est pas connected !
+        Il est nécessaire d'appeler connecter(i) pour obtenir un Quiver connected obtenu en reliant le vertex i à
             TOUS les autres.
 */
 
-Carquois::Carquois(const Carquois &ca, int k)
+Quiver::Quiver(const Quiver &ca, int k)
 {
     int i,j;
     n=ca.n+k;
@@ -134,21 +134,21 @@ Carquois::Carquois(const Carquois &ca, int k)
 
     this->graphAJour=0;
     semifree=0;
-    nbVoisinsMax = -1;
-    connexe = -1;
+    nbNeighboursMax = -1;
+    connected = -1;
     nextI=1;
     nextJ=0;
 }
 
 /*
-But: Constructeur à partir d'une matrice
-Entrée: une matrice
+But: Constructeur à partir d'une matrix
+Entrée: une matrix
 Sortie: Néant
 Précondition: Néant
 PostCondition: les structures de données et les données de l'objet sont initialisées
 */
 
-Carquois::Carquois(int ** mat_carquois, int taille, int indice)
+Quiver::Quiver(int ** mat_quiver, int taille, int indice)
 {
     int i,j;
     n=taille;
@@ -158,18 +158,18 @@ Carquois::Carquois(int ** mat_carquois, int taille, int indice)
         (this->M)[i]=(int *)malloc(n*sizeof(int));
     for(i=0;i<n;i++)
         for(j=0;j<n;j++)
-            M[i][j]=mat_carquois[i][j];
+            M[i][j]=mat_quiver[i][j];
     this->n=n;
     this->graphAJour=0;
     this->genScore();
     semifree=0;
-    nbVoisinsMax = -1;
-    connexe = -1;
+    nbNeighboursMax = -1;
+    connected = -1;
     nextI=1;
     nextJ=0;
 }
 
-/* But construire des carquois types
+/* But construire des quiver types
  *     Entrée: type
  *     A 0
     D 1
@@ -179,12 +179,12 @@ Carquois::Carquois(int ** mat_carquois, int taille, int indice)
     ETILDE 5
     SPORADIQUE 6
     UNAMED 7
-    nbSommets: le nombre de sommets à construire
+    nbVertexs: le nombre de vertexs à construire
     Sortie: Néant
     Précondition: type d'un type défini cf ci-dessus et .h
     PostCondition: les structures de données et les données de l'objet sont désallouées
 */
-Carquois::Carquois(int type, int nbSommets, int orientation)
+Quiver::Quiver(int type, int nbVertices, int orientation)
 {
     int i;
     
@@ -194,7 +194,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
     switch(type)
     {
         case A:
-            n=nbSommets;
+            n=nbVertices;
             if(n<2)
                 throw Exception("ERROR: not enough vertices");
             
@@ -209,10 +209,10 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
             
         break;
         case D:
-            n=nbSommets;
+            n=nbVertices;
             if(n<4)
                 throw Exception("ERROR: not enough vertices");
-            n=nbSommets;
+            n=nbVertices;
             this->M=(int **)calloc(n,sizeof(int *));
             for(i=0;i<n;i++)
                 (this->M)[i]=(int *)calloc(n,sizeof(int));
@@ -226,7 +226,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
             
         break;
         case E:
-            n=nbSommets;
+            n=nbVertices;
             switch(n)
             {
                 case 6:
@@ -248,31 +248,31 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
             }    
         break;
         case ATILDE:
-            n=nbSommets+orientation;
+            n=nbVertices+orientation;
             if(n<2)
                 throw Exception("ERROR: not enough vertices");
                 
             this->M=(int **)calloc(n,sizeof(int *));
             for(i=0;i<n;i++)
                 (this->M)[i]=(int *)calloc(n,sizeof(int));
-            for(i=0;i<nbSommets;i++)
+            for(i=0;i<nbVertices;i++)
             {
                 M[i][i+1]=1;
                 M[i+1][i]=-1;
             }
             for(i=1;i<orientation;i++)
             {
-                M[nbSommets+orientation-i][nbSommets+orientation-(i+1)]=1;
-                M[nbSommets+orientation-(i+1)][nbSommets+orientation-i]=-1;
+                M[nbVertices+orientation-i][nbVertices+orientation-(i+1)]=1;
+                M[nbVertices+orientation-(i+1)][nbVertices+orientation-i]=-1;
             }
             M[0][n-1] = 1;
             M[n-1][0]=-1;
             #ifdef DEBUG
-            this->affiche();
+            this->print();
             #endif
         break;
         case ATILDEALT:
-            n=nbSommets+orientation;
+            n=nbVertices+orientation;
             if(n<2)
                 throw Exception("ERROR: not enough vertices");
                 
@@ -287,13 +287,13 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
             M[n-1][0]=-1;
             M[0][n-1]=1;
             #ifdef DEBUG
-            this->affiche();
+            this->print();
             #endif
         break;
         case DTILDE:
-            if(nbSommets<3)
+            if(nbVertices<3)
                 throw Exception("ERROR: not enough vertices");
-            n=nbSommets+1;
+            n=nbVertices+1;
             this->M=(int **)calloc(n,sizeof(int *));
             for(i=0;i<n;i++)
                 (this->M)[i]=(int *)calloc(n,sizeof(int));
@@ -308,10 +308,10 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
             M[2][0]=-1;
         break;
         case ETILDE:
-            switch(nbSommets)
+            switch(nbVertices)
             {
                 case 6:
-                    n=nbSommets+1;
+                    n=nbVertices+1;
                     this->M=(int **)calloc(n,sizeof(int *));
                     for(i=0;i<n;i++)
                         (this->M)[i]=(int *)calloc(n,sizeof(int));
@@ -330,7 +330,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
                     M[6][4] = 1;                
                     break;
                 case 7:
-                    n=nbSommets+1;
+                    n=nbVertices+1;
                     this->M=(int **)calloc(n,sizeof(int *));
                     for(i=0;i<n;i++)
                         (this->M)[i]=(int *)calloc(n,sizeof(int));
@@ -353,7 +353,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
 
                     break;
                 case 8:
-                    n=nbSommets+1;
+                    n=nbVertices+1;
                     this->M=(int **)calloc(n,sizeof(int *));
                     for(i=0;i<n;i++)
                         (this->M)[i]=(int *)calloc(n,sizeof(int));
@@ -380,7 +380,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
             }
         break;
         case SPORADIQUE:
-            n=nbSommets;
+            n=nbVertices;
             if (n==3)
             {
                 this->M=(int **)calloc(n,sizeof(int *));
@@ -425,7 +425,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
             
         break;
         case UNAMED:
-            n=nbSommets;
+            n=nbVertices;
             if (n>=5)
             {
                 this->M=(int **)calloc(n,sizeof(int *));
@@ -445,15 +445,15 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
                 throw Exception("number of vertices too small");
         break;
         case  E_ELIPTIQUE:
-            if(nbSommets>=6 && nbSommets<9)
+            if(nbVertices>=6 && nbVertices<9)
             {
-                n=nbSommets+2;
+                n=nbVertices+2;
                 this->M=(int **)calloc(n,sizeof(int *));
                 for(i=0;i<n;i++)
                     (this->M)[i]=(int *)calloc(n,sizeof(int));
             }
             
-            if(nbSommets==6)
+            if(nbVertices==6)
             {
                 M[0][1]=1;
                 M[1][0]=-1;
@@ -487,7 +487,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
     
                 
             }
-            else if(nbSommets==7)
+            else if(nbVertices==7)
             {
                 
                 M[0][1]=1;
@@ -523,7 +523,7 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
                 M[0][8]=1;
                 M[8][0]=-1;
             }
-            else if(nbSommets==8)
+            else if(nbVertices==8)
             {
                 M[0][1]=1;
                 M[1][0]=-1;
@@ -558,18 +558,19 @@ Carquois::Carquois(int type, int nbSommets, int orientation)
         default:
             throw Exception("Bad type");
     } // end switch
+    //Generate score
     this->genScore();
-    nbVoisinsMax = -1;
-    // Ces carquois sont connexes
-    connexe = 1;
+    nbNeighboursMax = -1;
+    // This quiver is connected
+    connected = 1;
     nextI=1;
     nextJ=0;
 
 }
-
-Carquois::Carquois(const char *file)
+//Import quivers from files, both .qmu files and other files.
+Quiver::Quiver(const char *file)
 {
-    std::string contenu,ligne;
+    std::string contents,line;
     std::ifstream f(file);
     boost::char_separator<char> sep(",[] \t;");
     std::vector<int> val;
@@ -580,32 +581,32 @@ Carquois::Carquois(const char *file)
     semifree=0;
     if(!f)
         throw Exception("ERROR: cannot open file !");
-    std::getline (f, ligne);
-    if(ligne == "//Number of points")
+    std::getline (f, line);
+    if(line == "//Number of points")
     {
         std::cout << "qmu file format detected !" << std::endl;
         qmu = true;
-        while(ligne != "//Matrix")
-            std::getline(f,ligne);
-        std::getline(f,ligne);
-        std::getline(f,ligne);
+        while(line != "//Matrix")
+            std::getline(f,line);
+        std::getline(f,line);
+        std::getline(f,line);
     }
     
     while(!f.eof())
     {
         
-        contenu+=ligne;
-        std::getline(f,ligne);
+        contents+=line;
+        std::getline(f,line);
         // Keller's new file format ends matrix definition by "Traffic lights"
         // the old file format ends it with "Points"
         // We keep both tests for retro compatibility
-        if(qmu && (ligne == "//Traffic lights" || ligne == "//Points"))
+        if(qmu && (line == "//Traffic lights" || line == "//Points"))
         {
             break;
         }
         
     }
-    tokenizer tokens(contenu, sep);
+    tokenizer tokens(contents, sep);
     for (tokenizer::iterator tok_iter = tokens.begin();
          tok_iter != tokens.end(); ++tok_iter)
     {
@@ -635,8 +636,8 @@ Carquois::Carquois(const char *file)
     }
     this->n=n;
     this->graphAJour=0;
-    nbVoisinsMax = -1;
-    connexe = -1;
+    nbNeighboursMax = -1;
+    connected = -1;
     nextI=1;
     nextJ=0;
 }
@@ -648,7 +649,8 @@ Sortie: Néant
 Précondition: Néant
 PostCondition: les structures de données de l'objet sont désallouées
 */
-Carquois::~Carquois()
+//Destructor. Free the memory.
+Quiver::~Quiver()
 {
     int i;
     if(semifree==0)
@@ -659,41 +661,29 @@ Carquois::~Carquois()
     }
 }
 
-void Carquois::semiDestroy()
+//Compute NbNeighboursMax, score and connectedness and then get rid of the matrix.
+void Quiver::semiDestroy()
 {
     int i;
     if(semifree==0)
     {
-        getNbVoisinsMax(); // Penser à faire ça... sinon...
+        getNbNeighboursMax(); // Penser à faire ça... sinon...
         genScore();
-        estConnexe();
+        isConnected();
         semifree=1;
         for(i=0;i<this->n;i++)
             free((this->M)[i]);
         free(this->M);
     }
 }
-/*
-But: Constructeur par défaut
-Entrée: Néant
-Sortie: Néant
-Précondition: Néant
-PostCondition: les structures de données de l'objet sont allouées, la matrice d'incidence est initialisée avec une instance par défaut à 9 sommets
-
-*/
-Carquois::Carquois()
+//Default constructor. Doesn't do any initialization
+Quiver::Quiver()
 {
 
 }
 
-/*
-But: Afficher la matrice d'incidence sur la sortie standard
-Entrée: Néant
-Sortie: Néant
-Précondition: Néant
-PostCondition: La matrice d'incidence est affichée sur la sortie standard
-*/
-void Carquois::affiche()
+//Print the exchange matrix
+void Quiver::print()
 {
     int i,j;
     if(semifree==0)
@@ -712,23 +702,16 @@ void Carquois::affiche()
         std::cout << "The quiver has been semiFreed" << std::endl;
 }
 
-/*
-But: Appliquer la fonction de mutation sur un sommet du graphe
-Entrée: en entier k correspondant à un des sommets du graphe
-Sortie: Néant
-PréCondition: k est un sommet du graphe (=> k>=0 et k<n)
-PostCondition: La fonction \mu_k est appliquée au carquois
-*/
-
-void Carquois::mutate(int k)
+//Do mutation at k. Here counting starts at 0.
+void Quiver::mutate(int k)
 {
     int i,j;
-    int dernierElement;
-    // On ne fait rien si k ne correspond pas à un sommet du graphe
+    int lastMutatedVertex;
+    // On ne fait rien si k ne correspond pas à un vertex du graphe
     if(k<0 || k>= this->n)
         return;
         
-    //Création d'une matrice temporaire, copie de la matrice d'incidence
+    //Création d'une matrix temporaire, copie de la matrix d'incidence
     /*int Mp[this->n][this->n];
     for(i=0;i<n;i++)
         for(j=0;j<n;j++)
@@ -742,7 +725,7 @@ void Carquois::mutate(int k)
         for(j=0;j<n;j++)
         {
             if (j==k) continue;
-            M[i][j] = M[i][j] + (valeurAbs(M[i][k])*M[k][j] + M[i][k]*valeurAbs(M[k][j]))/2;
+            M[i][j] = M[i][j] + (absVal(M[i][k])*M[k][j] + M[i][k]*absVal(M[k][j]))/2;
         }
     }
     for(i=0;i<n;i++)
@@ -750,16 +733,17 @@ void Carquois::mutate(int k)
         M[i][k]=-M[i][k];
         M[k][i]=-M[k][i];
     }
-
+    //If the exchange matrix is of infinite type then print an exception and getMutations().
     if(this->infinite())
         throw Exception("Mutation class is infinite ! " + getMutations());
+    //Set graphAJour to 0.
     if(this->graphAJour)
     {
         this->graphAJour=0;
     }
 
     /*
-        On met à jour les mutations qui ont été appliquées sur le carquois
+        On met à jour les mutations qui ont été appliquées sur le quiver
         Si la mutation appliquée est la même que la dernière qui avait été appliquée:
             alors on a appliqué deux fois la même, ce qui revient à ne pas l'appliquer, on l'efface de la liste
         Sinon
@@ -769,10 +753,11 @@ void Carquois::mutate(int k)
     
     if(!mutations.empty())
     {
-        dernierElement = mutations.back();
-        if(dernierElement == k)
+        lastMutatedVertex = mutations.back();
+        if(lastMutatedVertex == k)
         {
             mutations.pop_back();
+            //If the last mutation was done at k then doing another mutation cancels that mutation.
         }
         else
         {
@@ -783,18 +768,13 @@ void Carquois::mutate(int k)
     {
         mutations.push_back(k);
     }
+    //Compute score
     this->genScore();
 }
 
-/*
-But: Calculer la valeur absolue d'un entier
-Entrée: un entier k
-Sortie: un entier s
-Précondition: Aucune
-PostCondition: s <- |k|
-*/
+//Take the absolute value of an integer
 
-int Carquois::valeurAbs(int k)
+int Quiver::absVal(int k)
 {
     if(k < 0)
         return -k;
@@ -802,25 +782,20 @@ int Carquois::valeurAbs(int k)
         return k;
 }
 
-/*
-But: Setter pour la matrice d'incidence
-Entrée: 3 entiers i, j et val
-Sortie: Aucune
-Précondition: i et j compris entre 0 et n-1
-PostCondition: M[i][j] <- val
-*/
-void Carquois::setM(int i, int j, int val)
+//set M[i][j] to be val.
+void Quiver::setM(int i, int j, int val)
 {
     if(i<n && j < n && i>=0 && j>=0)
     {
         M[i][j]=val;
+        //Restore graphAJour and connected to indeterminate after changing the exchange matrix
         if(this->graphAJour)
         {
             this->graphAJour = 0;
         }
-        if(this->connexe)
+        if(this->connected)
         {
-            this->connexe = -1;
+            this->connected = -1;
         }
     }
     else
@@ -829,9 +804,9 @@ void Carquois::setM(int i, int j, int val)
     
 }
 /* Cette fonction génère les structures qui vont bien pour les appels à Nauty */
-void Carquois::genGraph()
+void Quiver::genGraph()
 {
-    int i,j,m,nbSommetsNauty;
+    int i,j,m,nbVertexsNauty;
     int lab1[MAXN],ptn[MAXN],orbits[MAXN];
     static DEFAULTOPTIONS_GRAPH(options);
     statsblk stats;
@@ -840,10 +815,10 @@ void Carquois::genGraph()
     if(!this->graphAJour)
     {
         
-        nbSommetsNauty = 2 * this->getN();
-        m=(nbSommetsNauty + WORDSIZE - 1)/WORDSIZE;
+        nbVertexsNauty = 2 * this->getN();
+        m=(nbVertexsNauty + WORDSIZE - 1)/WORDSIZE;
 
-        /* Si on trouve une valeur strictement positive dans la matrice d'incidence, alors on ajoute une arrête dans notre graphe */
+        /* Si on trouve une valeur strictement positive dans la matrix d'incidence, alors on ajoute une arrête dans notre graphe */
         for(i=0;i<this->getN();i++)
         {
             gv=GRAPHROW(nautyG,i+this->getN(),m);
@@ -874,7 +849,7 @@ void Carquois::genGraph()
         options.getcanon = TRUE;
         options.digraph = TRUE;
         options.defaultptn = FALSE;
-        nauty_check(WORDSIZE,m,nbSommetsNauty,NAUTYVERSIONID);
+        nauty_check(WORDSIZE,m,nbVertexsNauty,NAUTYVERSIONID);
         
         for(i=0;i<2*n;i++)
         {
@@ -886,22 +861,22 @@ void Carquois::genGraph()
         
         
         nauty(nautyG,lab1,ptn,NULL,orbits,&options,&stats,
-                                  workspace,5*MAXM,m,nbSommetsNauty,nautyGC);
+                                  workspace,5*MAXM,m,nbVertexsNauty,nautyGC);
         this->graphAJour=1;    
     }
 }
 
-/* Cette fonction teste deux propriétés du Carquois:
+/* Cette fonction teste deux propriétés du Quiver:
  *
- * - Si le carquois a une arrête au moins triple alors il n'est pas de mutation finie (Cas 0)
- * - Si un sommet x est connecté à un sommet v par une arrête double, et si v est
- *    aussi connecté par une arrête double à un autre sommet, alors le carquois n'est pas de
+ * - Si le quiver a une arrête au moins triple alors il n'est pas de mutation finie (Cas 0)
+ * - Si un vertex x est connecté à un vertex v par une arrête double, et si v est
+ *    aussi connecté par une arrête double à un autre vertex, alors le quiver n'est pas de
  *    mutation finie (Cas 1)
  *
  * Cette fonction renvoie vrai si l'un des deux cas présents ci-dessus est trouvé, et faux sinon.
- * Attention: ce n'est pas parceque cette fonction renvoie faux que le carquois est nécessairement de mutation finie !
+ * Attention: ce n'est pas parceque cette fonction renvoie faux que le quiver est nécessairement de mutation finie !
  */
-bool Carquois::infinite()
+bool Quiver::infinite()
 {
     int i,j,compteur;
     if(this->getN()>2)
@@ -915,7 +890,7 @@ bool Carquois::infinite()
                 {
                     compteur++;
                 }
-                if(compteur == 2) /* Cas 1 le sommet i est connecté à 2 autres sommets par une arrête double */
+                if(compteur == 2) /* Cas 1 le vertex i est connecté à 2 autres vertexs par une arrête double */
                 {
                     return true;
                 }
@@ -931,7 +906,7 @@ bool Carquois::infinite()
 
 
 
-graph *Carquois::getNautyGraph()
+graph *Quiver::getNautyGraph()
 {
     if(!this->graphAJour)
     {
@@ -940,8 +915,9 @@ graph *Carquois::getNautyGraph()
     return  (graph *)&nautyGC;
 }
 
-
-void Carquois::printMutations()
+//Print the mutation sequence
+//Ying Zhou's change: This time we want to start from 1.
+void Quiver::printMutations()
 {
     std::vector<int>::iterator i;
     if(mutations.empty()) std::cout << "-\n";
@@ -949,22 +925,23 @@ void Carquois::printMutations()
     {
         for(i=mutations.begin();i!=mutations.end();i++)
         {
-            std::cout << *i;
+            std::cout << *i + 1;//In mathematics we want to start from 1.
             std::cout <<".";
         }
     std::cout << "\n";
     }
 }
 
-/* Calcule le "score" d'un carquois, utile pour sortir un "bon" représentant
+/* Calcule le "score" d'un quiver, utile pour sortir un "bon" représentant
  * du groupe de mutation
  */
-void Carquois::genScore()
+void Quiver::genScore()
 {
     int i,j;
     score=0;
     
     #ifdef SCORE1
+    //Score 1 is literally the sum of all negative elements in the exchange matrix.
     for(i=0;i<n;i++)
         for(j=0;j<n;j++)
             if (M[i][j]>0)
@@ -972,6 +949,7 @@ void Carquois::genScore()
                 score-=M[i][j];
             }
     #else
+    //Score Default (or Score 0) is literally 0 minus the count of all i j such that M[i][j]=2.
     for(i=0;i<n;i++)
         for(j=0;j<n;j++)
             if (M[i][j]==2)
@@ -984,12 +962,12 @@ void Carquois::genScore()
 /* Effectue mutations mutations et regarde si le degré des arcs explose
  * 
  */
-bool Carquois::testInfiniEmpirique(int mutations)
+bool Quiver::testInfiniEmpirique(int mutations)
 {
     int i;
     srand(time(NULL));
     // on travaille sur une copie
-    Carquois t = *this;
+    Quiver t = *this;
     if(t.infinite())
         return true;
     for(i=0;i<mutations;i++)
@@ -1000,8 +978,8 @@ bool Carquois::testInfiniEmpirique(int mutations)
     }
     return false;
 }
-
-void Carquois::toFile(const char* filename)
+//Print the exchange matrix to a file.
+void Quiver::toFile(const char* filename)
 {
     int i,j;
     std::ofstream fichierSortie(filename);
@@ -1025,7 +1003,9 @@ void Carquois::toFile(const char* filename)
     fichierSortie.close();
 }
 
-std::string Carquois::getMutations()
+//Get the mutation sequence as a string
+//Note that here we start from 0.
+std::string Quiver::getMutations()
 {
     std::vector<int>::iterator i;
     std::stringstream out;
@@ -1043,40 +1023,43 @@ std::string Carquois::getMutations()
     return out.str();
 }
 
-/* Renvoie la valence maximale du carquois */
+//Get the maximum number of vertices adjacent to any vertex.
 
-int Carquois::getNbVoisinsMax()
+int Quiver::getNbNeighboursMax()
 {
     int i,j;
-    int nbVoisinsTemp;
-    if(nbVoisinsMax == -1)
+    int nbNeighboursTemp;
+    if(nbNeighboursMax == -1)
     {
         for(i=0;i<n;i++)
         {
-            nbVoisinsTemp=0;
+            nbNeighboursTemp=0;
             for(j=0;j<n;j++)
             {
                 if(this->M[i][j] != 0)
                 {
-                    nbVoisinsTemp += 1;
+                    nbNeighboursTemp += 1;
                 }    
             }
-            if(nbVoisinsTemp > nbVoisinsMax)
+            if(nbNeighboursTemp > nbNeighboursMax)
             {
-                nbVoisinsMax = nbVoisinsTemp;
+                nbNeighboursMax = nbNeighboursTemp;
             }
         }    
 
     }
-    return nbVoisinsMax;
+    return nbNeighboursMax;
 }
-/* Algorithme de Warshall, calcule la fermeture transitive du graphe*/
-int Carquois::estConnexe()
+/* Warshall's algorithm. This calculates whether the quiver is connected.
+ -1: connectedness is undetermined.
+ 0: the quiver is not connected.
+ 1: the quiver is connected.*/
+int Quiver::isConnected()
 {
     bool mat[n][n];
     int i,j,k;
-    if(connexe != -1)
-        return connexe;
+    if(connected != -1)
+        return connected;
     // On travaille sur une copie du graphe */
     for(i=0;i<n;i++)
         for(j=0;j<n;j++)
@@ -1111,32 +1094,34 @@ int Carquois::estConnexe()
     }
     std::cout << "\n\n";
 #endif
-/* Si la fermeture transitive est une clique, le graphe est connexe */
+/* Si la fermeture transitive est une clique, le graphe est connected */
     for(i=0;i<n;i++)
         for(j=0;j<n;j++)
             if(mat[i][j]!=true)
             {
-                connexe = 0;
+                connected = 0;
                 return 0;
             }
-    connexe = 1;
+    connected = 1;
     return 1;
 }
 
-/* But: Dire si un sommet i a une arrête double ou non
- * Entrée: i un sommet du carquois
+/* But: Dire si un vertex i a une arrête double ou non
+ * Entrée: i un vertex du quiver
  * Sortie: vraie si i est connecté par une arrête double, faux sinon
  * Précondition: i est compris entre 0 et n
  * PostCondition: néant
  */
-bool Carquois::aUneDouble(int sommet)
+/* Is vertex incident to some double edge?
+ TODO: This method needs to be modified for valued quivers.*/
+bool Quiver::aUneDouble(int vertex)
 {
     int i;
-    if(sommet < n && sommet >= 0)
+    if(vertex < n && vertex >= 0)
     {
         for(i=0;i<n;i++)
         {
-            if(M[i][sommet] == 2 || M[i][sommet] == -2)
+            if(M[i][vertex] == 2 || M[i][vertex] == -2)
                 return true;
         }
         return false;
@@ -1148,15 +1133,15 @@ bool Carquois::aUneDouble(int sommet)
 }
 
 /*
-But: Dire si trois sommets du graphe forment un 3-cycle orienté ou non
-Entrée: 3 entiers correspondant à 3 sommets du carquois
-Sortie: Vrai si les trois sommets forment un 3-cycle orienté, Faux sinon.
+But: Dire si trois vertexs du graphe forment un 3-cycle orienté ou non
+Entrée: 3 entiers correspondant à 3 vertexs du quiver
+Sortie: Vrai si les trois vertexs forment un 3-cycle orienté, Faux sinon.
 Précondition: i, j et k sont compris entre 0 et n et sont tous les trois distincts
 PostCondition: néant
 */
-bool Carquois::troisCycleOriente(int i, int j, int k)
+bool Quiver::isOrientedThreeCycle(int i, int j, int k)
 {
-    /* On vérifie que les entrées sont bien des sommets du graphe */
+    /* On vérifie que les entrées sont bien des vertexs du graphe */
     if(i<n && j < n && k < n && i>=0 && j>=0 && k>=0)
     {
         if(i != j && i != k && j != k)
@@ -1170,34 +1155,35 @@ bool Carquois::troisCycleOriente(int i, int j, int k)
             }
             else
             {
-                // Les trois sommets ne forment pas un cycle !
+                // Les trois vertexs ne forment pas un cycle !
                 return false;
             }
         }
         else
         {
-            // Les trois sommets ne sont pas différents !
+            // Les trois vertexs ne sont pas différents !
             return false;
         }
     }
     else
     {
-        throw new Exception("ERROR, Carquois::troisCycleOriente: One of the three arguments is not a vertex !");
+        throw new Exception("ERROR, Quiver::isOrientedThreeCycle: One of the three arguments is not a vertex !");
     }
 }
 
-bool Carquois::cyclique()
+//Does the quiver contain oriented cycles?
+bool Quiver::isCyclic()
 {
-    int visite[n];
+    int visited[n];
     int i;
     for(i=0;i<n;i++)
     {
-        visite[i] = 0;
+        visited[i] = 0;
     }
     for(i=0;i<n;i++)
     {
-        if(visite[i] == 0) {
-            if (exploreCycle(visite,i)) {
+        if(visited[i] == 0) {
+            if (exploreCycle(visited,i)) {
                 return true;
             }
         }
@@ -1205,20 +1191,20 @@ bool Carquois::cyclique()
     return false;
 }
 
-bool Carquois::exploreCycle(int *visite,int i)
+bool Quiver::exploreCycle(int *visited,int i)
 {
     int j;
-    visite[i] = 1;
+    visited[i] = 1;
     for(j=0;j<n;j++)
     {
         if(M[i][j] > 0)
         {
-            if(visite[j] == 1) {return true;}
+            if(visited[j] == 1) {return true;}
             else 
             { 
-                if (visite[j] == 0) 
+                if (visited[j] == 0)
                 {
-                    if(exploreCycle(visite,j))
+                    if(exploreCycle(visited,j))
                     {
                         return true;
                     }
@@ -1226,95 +1212,103 @@ bool Carquois::exploreCycle(int *visite,int i)
             }
         }
     }
-    visite[i] = 2;
+    visited[i] = 2;
     return false;
 }
 
-std::vector<int> Carquois::getVoisins(int sommet)
+//get all neighbours of a given vertex
+std::vector<int> Quiver::getNeighbours(int vertex)
 {
-    std::vector<int> voisins;
+    std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][sommet] != 0)
-            voisins.push_back(i);
+        if(M[i][vertex] != 0)
+            neighbours.push_back(i);
     }
-    return voisins;
+    return neighbours;
 }
 
-std::vector<int> Carquois::getVoisinsDoubles(int sommet)
+//get all neighbors with a (k,2) edge.
+std::vector<int> Quiver::getNeighboursDoubles(int vertex)
 {
-    std::vector<int> voisins;
+    std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][sommet] == 2 || M[i][sommet] == -2)
-            voisins.push_back(i);
+        if(M[i][vertex] == 2 || M[i][vertex] == -2)
+            neighbours.push_back(i);
     }
-    return voisins;
+    return neighbours;
 }
 
-std::vector<int> Carquois::getVoisinsSimples(int sommet)
+//get all neighbors with a (k,1) edge.
+std::vector<int> Quiver::getNeighboursSimples(int vertex)
 {
-    std::vector<int> voisins;
+    std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][sommet] == 1 || M[i][sommet] == -1)
-            voisins.push_back(i);
+        if(M[i][vertex] == 1 || M[i][vertex] == -1)
+            neighbours.push_back(i);
     }
-    return voisins;
+    return neighbours;
 }
 
-std::vector<int> Carquois::getVoisinsSimplesPredecesseurs(int sommet)
+//get all predecessors with a (k,1) edge
+std::vector<int> Quiver::getNeighboursSimplesPredecesseurs(int vertex)
 {
-    std::vector<int> voisins;
+    std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][sommet] == -1)
-            voisins.push_back(i);
+        if(M[i][vertex] == -1)
+            neighbours.push_back(i);
     }
-    return voisins;
+    return neighbours;
 }
 
-std::vector<int> Carquois::getVoisinsSimplesSuccesseurs(int sommet)
+//get all sucessors with a (k,1) edge
+std::vector<int> Quiver::getNeighboursSimplesSuccesseurs(int vertex)
 {
-    std::vector<int> voisins;
+    std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][sommet] == 1)
-            voisins.push_back(i);
+        if(M[i][vertex] == 1)
+            neighbours.push_back(i);
     }
-    return voisins;
+    return neighbours;
 }
 
-int Carquois::getNbVoisinsSimplesPredecesseurs(int sommet)
+//count the number of (k,1) predecessors
+int Quiver::getNbNeighboursSimplesPredecesseurs(int vertex)
 {
-    int voisins;
+    int neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][sommet] == -1)
-            voisins++;
+        if(M[i][vertex] == -1)
+            neighbours++;
     }
-    return voisins;
+    return neighbours;
 }
 
-int Carquois::getNbVoisinsSimplesSuccesseurs(int sommet)
+//count the number of (k,1) successors
+int Quiver::getNbNeighboursSimplesSuccesseurs(int vertex)
 {
-    int voisins=0;
+    int neighbours=0;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][sommet] == 1)
-            voisins++;
+        if(M[i][vertex] == 1)
+            neighbours++;
     }
-    return voisins;
+    return neighbours;
 }
 
-std::vector<int> Carquois::getSommetsArreteDoubleEntrante()
+//get all sinks of (k,2) arrows
+std::vector<int> Quiver::getVertexsDoubleEdgeEntrante()
 {
     std::vector<int> res;
     int i,j;
@@ -1331,7 +1325,8 @@ std::vector<int> Carquois::getSommetsArreteDoubleEntrante()
     }
     return res;
 }
-std::vector<int> Carquois::getSommetsPasDArreteDouble()
+//get all vertices incident to (k,2) arrows
+std::vector<int> Quiver::getVertexsPasDDoubleEdge()
 {
     std::vector<int> res;
     int i,j;
@@ -1349,11 +1344,8 @@ std::vector<int> Carquois::getSommetsPasDArreteDouble()
     return res;
 }
 
-/* Précondition: i est un sommet pourvu d'une arrête double entrante
- * Renvoie l'extrémité sortante de l'arrête
- * Renvoie -1 en cas d'erreur
- */
-int Carquois::getSommetOrigineArreteDouble(int i)
+//Get the first vertex that is a source of a (k,2) arrow to i. If impossible return -1.
+int Quiver::getVertexOrigineDoubleEdge(int i)
 {
     int j;
     for(j=0;j<n;j++)
