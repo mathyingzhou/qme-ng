@@ -45,7 +45,7 @@ int MutExploratorSeq::isomorphismExplorator(Quiver depart, int granularite)
 	int stop=0;
 	int infinite=0;
 	Quiver ct = depart;
-	int i;
+	//int i;
 	if(resume == 0)
 	{
 		ct.testInfiniEmpirique(50*ct.getN());
@@ -70,7 +70,7 @@ int MutExploratorSeq::isomorphismExplorator(Quiver depart, int granularite)
 			if(c[index].infinite())
 			{
 				stop=1; infinite=1;
-				throw Exception("Classe de mutation infinie" + c[index].getMutations());
+				throw Exception("The mutation class is infinite" + c[index].getMutations());
 			}
 			
 			#ifdef DEBUG
@@ -91,7 +91,7 @@ int MutExploratorSeq::isomorphismExplorator(Quiver depart, int granularite)
 	return c.size();
 }
 
-int MutExploratorSeq::estDansClasseDeMutation(Quiver test, Quiver depart)
+int MutExploratorSeq::isInTheMutationClass(Quiver test, Quiver depart)
 {
 	
 	int stop=0;
@@ -123,7 +123,7 @@ int MutExploratorSeq::estDansClasseDeMutation(Quiver test, Quiver depart)
 			if(c[index].infinite())
 			{
 				stop=1; infinite=1;
-				throw Exception("Classe de mutation infinie");
+				throw Exception("The mutation class is infinite");
 			}
 			
 			generateMutations(c[index]);

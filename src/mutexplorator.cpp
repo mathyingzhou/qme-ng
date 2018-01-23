@@ -66,7 +66,7 @@ void MutExplorator::generateMutations(Quiver quiver)
 	int i;
 	Quiver c = quiver;
 	#ifdef DEBUG
-	std::cout << "Travail avec "; c.printMutations();
+	std::cout << "Working on "; c.printMutations();
 	#endif
 	for(i=0;i<quiver.getN();i++)
 	{
@@ -102,7 +102,7 @@ void MutExplorator::generateMutations(Quiver quiver)
 		}
 		c.mutate(i);
 		#ifdef DEBUG
-		std::cout << "Analyse de ";
+		std::cout << "Analyzing ";
 		c.printMutations();
 		//c.print();
 		#endif
@@ -110,7 +110,7 @@ void MutExplorator::generateMutations(Quiver quiver)
 		c.mutate(i);
 	}
 	#ifdef DEBUG
-	std::cout << "Fin du travail avec "; c.printMutations();	
+	std::cout << "We have finished the work on "; c.printMutations();	
 	#endif
 }
 void MutExplorator::insertInList(Quiver *quiver)
@@ -138,7 +138,7 @@ void MutExplorator::insertInList(Quiver *quiver)
         {
             #ifdef DEBUG
                 quiver->printMutations(); 
-                std::cout << "est isomorphe à  "; 
+                std::cout << "Is isomorphic to  "; 
                 (*ri).printMutations(); 
                 std::cout << "\n";
             #endif
@@ -152,7 +152,7 @@ void MutExplorator::insertInList(Quiver *quiver)
 	{
 		c.push_back(*quiver);
 		#ifdef DEBUG
-			std::cout << "Ajout de ";
+			std::cout << "Adding ";
 			quiver->printMutations();
 			std::cout << "\n";
 		#endif
@@ -186,7 +186,7 @@ int MutExplorator::getModeCmp()
 	return modeComparaison;
 }
 
-bool MutExplorator::estDansC(Quiver *quiver)
+bool MutExplorator::isInC(Quiver *quiver)
 {
 	std::vector<Quiver>::reverse_iterator ri;
 	quiver->genGraph();
@@ -202,7 +202,7 @@ bool MutExplorator::estDansC(Quiver *quiver)
 			{
 				#ifdef DEBUG
 					quiver->printMutations(); 
-					std::cout << "est isomorphe à  "; 
+					std::cout << "is isomorphic to  ";
 					(*ri).printMutations(); 
 					std::cout << "\n";
 				#endif
@@ -216,5 +216,5 @@ bool MutExplorator::estDansC(Quiver *quiver)
 		return false;
 		
 	}
-	
+    return false;
 }

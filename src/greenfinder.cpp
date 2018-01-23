@@ -22,11 +22,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+//The purpose of GreenFinder is to find a random maximal green sequence
 #include "greenfinder.hpp"
 
-GreenFinder::GreenFinder(PrincipalExtension pe, mpz_class p=0, int min_depth=0, int max_depth=-1)
+GreenFinder::GreenFinder(IceQuiver pe, mpz_class p=0, int min_depth=0, int max_depth=-1)
 {
-    depart = new PrincipalExtension(pe);
+    depart = new IceQuiver(pe);
     this->p = p;
     this->min_depth = min_depth;
     this->max_depth = max_depth;
@@ -35,15 +36,15 @@ GreenFinder::GreenFinder(PrincipalExtension pe, mpz_class p=0, int min_depth=0, 
 
 void GreenFinder::find(uint64_t tries)
 {
-    int ret;
-    int i;
+    int ret = -2;//Initialize ret to be something IceQuiver::mutate never returns.
+    //int i;
     int vertex;
     int totalTries=tries;
     uint64_t cutMax=0, cutMin=0, cutNoMore=0, cutInf=0;
-    PrincipalExtension *pe;
+    IceQuiver *pe;
     // Main loop
     while((tries != 0) && (ret !=1)) {
-        pe = new PrincipalExtension(*depart);
+        pe = new IceQuiver(*depart);
         tries--;
         std::cout <<  (char)27 << "[2K" << (char)27 << "E" 
                   << "Try " << totalTries-tries << "/" << totalTries 

@@ -40,7 +40,7 @@ GreenExplorator::~GreenExplorator()
 }
 void GreenExplorator::printArbre()
 {
-    std::list<PrincipalExtension>::iterator i;
+    std::list<IceQuiver>::iterator i;
     int j=0;
     for(i=c.begin();i!=c.end();i++)
     {
@@ -54,23 +54,23 @@ void GreenExplorator::clearC()
     c.clear();
 }
         
-int GreenExplorator::generateMutations(PrincipalExtension &pe)
+int GreenExplorator::generateMutations(IceQuiver &pe)
 {
-    int i;
+    //int i;
     int ret;
     int vertex;
-    int create=0;
+    //int create=0;
     unsigned int size;
     std::string mutations_str="";
     std::string filename = "";
     std::vector<int> mutations_v;
     std::stringstream ss (std::stringstream::in | std::stringstream::out);
-    PrincipalExtension p = pe;
+    IceQuiver p = pe;
     strhash::iterator iit;
     std::map<uint64_t,mpz_class>::iterator mult_it;
     std::map<uint64_t,mpz_class> *mult;
     #ifdef DEBUG
-    std::cout << "Travail avec "; pe.printMutationsE(0);
+    std::cout << "Working on "; pe.printMutationsE(0);
     #endif
     vertex = pe.getNextGreenVertex();
     if(vertex == -1) {
@@ -130,15 +130,15 @@ int GreenExplorator::generateMutations(PrincipalExtension &pe)
         c.push_back(p);
         return 2;
     }
-    #ifdef DEBUG
+    /*#ifdef DEBUG
     std::cout << "Fin du travail avec "; p.printMutations(0);    
-    #endif
+    #endif*/
 }
 
-int GreenExplorator::insertInList(PrincipalExtension &pe)
+int GreenExplorator::insertInList(IceQuiver &pe)
 {
-    std::list<PrincipalExtension>::iterator ri; 
-    std::list<PrincipalExtension>::reverse_iterator rxi;
+    std::list<IceQuiver>::iterator ri; 
+    std::list<IceQuiver>::reverse_iterator rxi;
     std::map<uint64_t,mpz_class>::iterator it_mul;
     std::map<uint64_t,mpz_class> *mul_map;
     std::map<uint64_t,mpz_class> tmp;
@@ -147,7 +147,7 @@ int GreenExplorator::insertInList(PrincipalExtension &pe)
     strhash::iterator iit;
     std::string mutations_str="";
     std::vector<int> mutations_v;
-    int i;
+    //int i;
     uint64_t pe_size,n_size;
     std::stringstream ss (std::stringstream::in | std::stringstream::out);
     // ri is an  iterator, it browses the list from the beginning
@@ -157,7 +157,7 @@ int GreenExplorator::insertInList(PrincipalExtension &pe)
         {
             #ifdef DEBUG
                 pe.printMutations(0); 
-                std::cout << "est isomorphe à  "; 
+                std::cout << "Is isomorphic to  ";
                 (*ri).printMutations(0); 
                 std::cout << "\n";
             #endif
@@ -174,7 +174,7 @@ int GreenExplorator::insertInList(PrincipalExtension &pe)
         {
             #ifdef DEBUG
                 pe.printMutations(0); 
-                std::cout << "est isomorphe à (C) "; 
+                std::cout << "Is isomorphic to (C) ";
                 (*rxi).printMutations(0); 
                 std::cout << "\n";
             #endif
@@ -220,7 +220,7 @@ int GreenExplorator::insertInList(PrincipalExtension &pe)
     {
         c.push_back(pe);
         #ifdef DEBUG
-            std::cout << "Ajout de";
+            std::cout << "Adding";
             pe.printMutations(0);
         #endif
         // Insertion done, return 2;
@@ -231,10 +231,10 @@ int GreenExplorator::insertInList(PrincipalExtension &pe)
     return 0;
 }
 
-int GreenExplorator::insertInList(PrincipalExtension &pe, std::list<PrincipalExtension> &c)
+int GreenExplorator::insertInList(IceQuiver &pe, std::list<IceQuiver> &c)
 {
-    std::list<PrincipalExtension>::iterator ri; 
-    std::list<PrincipalExtension>::reverse_iterator rxi;
+    std::list<IceQuiver>::iterator ri; 
+    std::list<IceQuiver>::reverse_iterator rxi;
 
     // ri is an  iterator, it browses the list from the beginning
     for(ri=c.begin();ri!=c.end();ri++)
@@ -243,7 +243,7 @@ int GreenExplorator::insertInList(PrincipalExtension &pe, std::list<PrincipalExt
         {
             #ifdef DEBUG
                 pe.printMutations(0); 
-                std::cout << "est isomorphe cim à  "; 
+                std::cout << "Is isomorphic to  ";//est isomorphe cim à
                 (*ri).printMutations(0); 
                 std::cout << "\n";
             #endif
@@ -258,7 +258,7 @@ int GreenExplorator::insertInList(PrincipalExtension &pe, std::list<PrincipalExt
         pe.semiDestroy();
         c.push_back(pe);
         #ifdef DEBUG
-            std::cout << "Ajout de (C)";
+            std::cout << "Adding (C)";
             pe.printMutations(0);
         #endif
         // Insertion done, return 2;
@@ -269,13 +269,13 @@ int GreenExplorator::insertInList(PrincipalExtension &pe, std::list<PrincipalExt
     return 0;
 }
 
-void GreenExplorator::greenExploration(PrincipalExtension pe)
+void GreenExplorator::greenExploration(IceQuiver pe)
 {
     int index = 0;
     int ret;
     std::map<uint64_t,mpz_class>::iterator it;
     mpz_class total=0;
-    std::list<PrincipalExtension>::iterator pei;
+    std::list<IceQuiver>::iterator pei;
     std::stringstream ss (std::stringstream::in | std::stringstream::out);
     std::string filename;
     uint64_t cutPending = 0;
@@ -301,7 +301,7 @@ void GreenExplorator::greenExploration(PrincipalExtension pe)
     while(c.size()!=0) {
     #ifdef DEBUG
     std::cout << "C.size: " << c.size() << " Cem.size: " << cemetary.size() << "\t\t";
-    std::cout << "Travail avec "; (*pei).printMutations(0);
+    std::cout << "Working on "; (*pei).printMutations(0);
     (*pei).print();
     #endif
         ret = generateMutations(*pei);
@@ -370,10 +370,10 @@ void GreenExplorator::greenExploration(PrincipalExtension pe)
     }
 }
 
-bool GreenExplorator::myIsomorphismNauty(PrincipalExtension &a, PrincipalExtension &b)
+bool GreenExplorator::myIsomorphismNauty(IceQuiver &a, IceQuiver &b)
 {
     int i;
-    int n = a.getN();
+    //int n = a.getN();
     int nbNautyVert;
     std::map<mpz_class, mpz_class> *mul_a;
     std::map<mpz_class, mpz_class> *mul_b;

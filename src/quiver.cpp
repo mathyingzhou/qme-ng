@@ -148,10 +148,10 @@ Précondition: Néant
 PostCondition: les structures de données et les données de l'objet sont initialisées
 */
 
-Quiver::Quiver(int ** mat_quiver, int taille, int indice)
+Quiver::Quiver(int ** mat_quiver, int nbVertices, int indice)
 {
     int i,j;
-    n=taille;
+    n=nbVertices;
     this->M=(int **)malloc(n*sizeof(int *));
     
     for(i=0;i<n;i++)
@@ -159,7 +159,7 @@ Quiver::Quiver(int ** mat_quiver, int taille, int indice)
     for(i=0;i<n;i++)
         for(j=0;j<n;j++)
             M[i][j]=mat_quiver[i][j];
-    this->n=n;
+    //this->n=n; //Assign field to itself
     this->graphAJour=0;
     this->genScore();
     semifree=0;
@@ -177,7 +177,7 @@ Quiver::Quiver(int ** mat_quiver, int taille, int indice)
     ATILDE 3
     DTILDE 4
     ETILDE 5
-    SPORADIQUE 6
+    SPORADIC 6
     UNAMED 7
     nbVertexs: le nombre de vertexs à construire
     Sortie: Néant
@@ -379,7 +379,7 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                     throw Exception("ERROR: bad vertex number asked");
             }
         break;
-        case SPORADIQUE:
+        case SPORADIC:
             n=nbVertices;
             if (n==3)
             {
@@ -420,7 +420,7 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
             }
             else
             {
-                throw Exception("ERROR: SPORADIQUE asked but n != 3 or 4");
+                throw Exception("ERROR: SPORADIC asked but n != 3 or 4");
             }
             
         break;
@@ -444,7 +444,7 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
             else
                 throw Exception("number of vertices too small");
         break;
-        case  E_ELIPTIQUE:
+        case  E_ELIPTIC:
             if(nbVertices>=6 && nbVertices<9)
             {
                 n=nbVertices+2;
@@ -1284,7 +1284,7 @@ std::vector<int> Quiver::getNeighboursSimplesSuccesseurs(int vertex)
 //count the number of (k,1) predecessors
 int Quiver::getNbNeighboursSimplesPredecesseurs(int vertex)
 {
-    int neighbours;
+    int neighbours=0;
     int i;
     for(i=0;i<n;i++)
     {
