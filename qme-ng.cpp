@@ -34,20 +34,21 @@
 
 int main(int argc, char **argv)
 {
-    int **test;
+    //int **test;
     mpz_class p;
     int max_depth;
     int min_depth;
     int mutationClassSize;
-    bool iso=true;
+    //bool iso=true;
     int random_tries;
     std::vector<int> size;
     std::string type;
+    std::string orientation;
     Quiver *quiver;
     GreenExplorator ge;
     GreenFinder *gf;
     MutExploratorSeq *explorator;
-    PrincipalExtension *pt;
+    IceQuiver *pt;
     std::map<std::string,int> type_quiver;
     std::map<std::string,int>::const_iterator it_map;
     /* Initializing type_quiver map */
@@ -58,25 +59,27 @@ int main(int argc, char **argv)
     type_quiver["ATILDEALT"] = ATILDEALT;
     type_quiver["DTILDE"] = DTILDE;
     type_quiver["ETILDE"] = ETILDE;
-    type_quiver["SPORADIQUE"] = SPORADIQUE;
+    type_quiver["SPORADIC"] = SPORADIC;
     type_quiver["UNAMED"] = UNAMED;
-    type_quiver["E_ELIPTIQUE"] = E_ELIPTIQUE;
+    type_quiver["E_ELIPTIC"] = E_ELIPTIC;
 
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        ("help", "Prints this help")
-        ("file", boost::program_options::value<std::string>(), "Quiver file")
-        ("pefile", boost::program_options::value<std::string>(), "Principal Extension file")
-        ("type", boost::program_options::value<std::string>(), "Quiver type (A, D, E, ATILDE, DTILDE, ETILDE, SPORADIQUE, UNAMED, E_ELIPTIQUE)")
-        ("size", boost::program_options::value< std::vector<int> >(),"Quiver size (must be used with type)")
-        ("green", "Green exploration")
+        ("help,h", "Print this help")
+        ("file,f", boost::program_options::value<std::string>(), "Exchange matrix file (n * n)")
+        /*("eefile,e", boost::program_options::value<std::string>(), "Extended exchange matrix file (2n * n)")*/
+        ("iqfile,i", boost::program_options::value<std::string>(), "Exchange matrix of ice quiver file (2n * 2n)")
+        ("type,t", boost::program_options::value<std::string>(), "Quiver type (A, D, E, ATILDE, DTILDE, ETILDE, SPORADIC, UNAMED, E_ELIPTIC)")
+        ("size,s", boost::program_options::value< std::vector<int> >(),"Quiver size (must be used with type)")
+        ("orientation,o", boost::program_options::value<std::string>(), "Orientation (a sequence of l and r to denote orientation, if orientation is not given the default orientation will be used)")
+        ("green,g", "Green exploration")
         ("one", boost::program_options::value<int>(&random_tries)->default_value(0), "Find one green suite, give number of tries")
         ("p", boost::program_options::value<mpz_class>(&p)->default_value(0),"P param")
         ("max_depth", boost::program_options::value<int>(&max_depth)->default_value(INT_MAX),"Max exploration depth")
         ("min_depth", boost::program_options::value<int>(&min_depth)->default_value(0),"Min exploration depth")
-        ("no-iso", "Isomorph discrimination")
-        ("dump-class", boost::program_options::value<std::string>(), "Dump Mutation Class")
-        ("dump-trunk", "Dump truncated quivers")
+        ("no-iso,n", "Isomorph discrimination")
+        ("dump-class,c", boost::program_options::value<std::string>(), "Dump Mutation Class")
+        ("dump-trunk,k", "Dump truncated quivers")
     ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -93,17 +96,25 @@ int main(int argc, char **argv)
     }
     try
     {
-        if(vm.count("file") && vm.count("pefile")) {throw Exception("Only one type of file can be given !");}
+        //Get the ice quiver
+        if(vm.count("file") && vm.count("iqfile")) {throw Exception("Only one type of file can be given !");}
         if(vm.count("file"))
         {
                     quiver = new Quiver(vm["file"].as<std::string>().c_str());
         }
+        //Generate quiver from type, size and orientation
         else if(vm.count("type"))
         {
             if(vm.count("size"))
             {
                 size = vm["size"].as< std::vector<int> >();
                 type = vm["type"].as<std::string>();
+                if(vm.count("orientation")) {
+                    orientation = vm["orientation"].as<std::string>();
+                }
+                else {
+                    orientation = "d";//If orientation is not given then we use the default orientation.
+                }
                 it_map = type_quiver.find(type);
                 if(it_map == type_quiver.end())
                 {
@@ -113,9 +124,11 @@ int main(int argc, char **argv)
                 }
                 else
                 {
+                    //Type & size
                     if(size.size() == 1) {
                         quiver = new Quiver(it_map->second,size[0]);
                     }
+                    //Type, size and orientation for ATILDE
                     if(size.size() == 2) {
                         quiver = new Quiver(it_map->second,size[0],size[1]);
                     }
@@ -123,13 +136,14 @@ int main(int argc, char **argv)
             }
             else
             {
+                //No size
                 std::cerr << desc << "\n";
                 return 1;
             }
         }
         else
         {
-            if(!vm.count("pefile")) {
+            if(!vm.count("iqfile")) {
                 std::cerr << desc << "\n";
                 return 1;
             }
@@ -139,20 +153,23 @@ int main(int argc, char **argv)
         std::cout << e.m_Msg << "\n";
         return 1;
     }
-
+    //Find maximal green sequences.
     if(vm.count("green"))
     {
-        if(vm.count("pefile")) { pt = new PrincipalExtension(vm["pefile"].as<std::string>().c_str());}
+        if(vm.count("iqfile")) { pt = new IceQuiver(vm["iqfile"].as<std::string>().c_str());}
         else  {
-            pt = new PrincipalExtension(*quiver);
+            pt = new IceQuiver(*quiver);
         }
+        //Print the 2n * 2n exchange matrix of the ice quiver
         pt->print();
         pt->generateGreenVertices();
         try {
             if(random_tries == 0) {
+                //Get the number of MGS
                 ge.greenExploration(*pt);
             }
             else
+            //--one, get a random MGS
             {
                 gf = new GreenFinder(*pt, p, min_depth, max_depth);
                 gf->find(random_tries);
@@ -166,6 +183,7 @@ int main(int argc, char **argv)
         }
     }
     else
+    //Get mutation class size
     {
         explorator = new MutExploratorSeq();
         try {
@@ -191,7 +209,8 @@ int main(int argc, char **argv)
         }
         delete explorator;
     }
-    if(!vm.count("pefile")) {
+    //Free the memory
+    if(!vm.count("iqfile")) {
         delete quiver;
     }
     delete pt;
