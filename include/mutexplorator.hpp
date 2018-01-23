@@ -39,7 +39,7 @@ typedef int ** matrix;
 typedef struct infoMat derMat;
 struct infoMat{
 	matrix *matrixC;
-	int taille;
+	int nbVertices;
 	int vertex;
 	int quiver;
 };
@@ -52,7 +52,7 @@ class MutExplorator
 		virtual int isomorphismExplorator(Quiver depart,int granularite) = 0;
 		void printArbre();
 		void insertInList(Quiver *quiver);
-		bool estDansC(Quiver *quiver);
+		bool isInC(Quiver *quiver);
 		Quiver getRepresentant();
 		void clearC();
 		int getModeCmp();

@@ -37,7 +37,7 @@ class MutExploratorSeq : public MutExplorator
 		void reprise(const char* file);
 		int isomorphismExplorator(Quiver depart, int granularite);
 		int getNbNeighboursMax();
-		int estDansClasseDeMutation(Quiver test, Quiver depart);
+		int isInTheMutationClass(Quiver test, Quiver depart);
 		int checkpoint();
 		bool isAcyclic();
 		int dumpFiles(const char* prefix);

@@ -49,9 +49,9 @@
 #define ATILDE 3
 #define DTILDE 4
 #define ETILDE 5
-#define SPORADIQUE 6
+#define SPORADIC 6
 #define UNAMED 7
-#define E_ELIPTIQUE 8
+#define E_ELIPTIC 8
 #define ATILDEALT 9
 #define B 10
 #define C 11

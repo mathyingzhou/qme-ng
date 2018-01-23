@@ -22,6 +22,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+//The purpose of GreenFinder is to find a random maximal green sequence
 #ifndef GREENFINDER
 #define GREENFINDER
 
@@ -33,23 +34,22 @@
 #include <limits.h>
 #include "Exception.h"
 #include "enum.hpp"
-#include "principalExtension.hpp"
+#include "iceQuiver.hpp"
 #include <stdint.h>
 #include <map>
 #include <sstream>
 #include <time.h>
 
-
 class GreenFinder
 {
 	public:
-		GreenFinder(PrincipalExtension , mpz_class, int, int);
+		GreenFinder(IceQuiver , mpz_class, int, int);
 		void find(uint64_t tries);
         inline void setP(mpz_class value) { p = value;};
         inline void setMaxDepth(int value) { max_depth = value;};
 		
 	protected:
-		PrincipalExtension *depart;
+		IceQuiver *depart;
 	private:
 		mpz_class p;
 		int max_depth;

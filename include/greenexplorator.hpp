@@ -33,7 +33,7 @@
 #include <limits.h>
 #include "Exception.h"
 #include "enum.hpp"
-#include "principalExtension.hpp"
+#include "iceQuiver.hpp"
 #include <stdint.h>
 #include <map>
 #include <sstream>
@@ -46,10 +46,10 @@ class GreenExplorator
 		GreenExplorator();
 		~GreenExplorator();
 		void printArbre();
-		int insertInList(PrincipalExtension &pe);
-		int insertInList(PrincipalExtension &pe, std::list<PrincipalExtension> &c);
+		int insertInList(IceQuiver &pe);
+		int insertInList(IceQuiver &pe, std::list<IceQuiver> &c);
 		void clearC();
-		void greenExploration(PrincipalExtension);
+		void greenExploration(IceQuiver);
         inline void setIsomorphTest(bool value) { isomorphTest = value;};
         inline void setDumpTruncated(bool value) { dumpTruncated = value;};
         inline void setP(mpz_class value) { p = value;};
@@ -57,9 +57,9 @@ class GreenExplorator
 		
 	protected:
 		Quiver *quiver;
-		std::list<PrincipalExtension> c;
-		std::list<PrincipalExtension> cemetary;
-		int generateMutations(PrincipalExtension &pe);
+		std::list<IceQuiver> c;
+		std::list<IceQuiver> cemetary;
+		int generateMutations(IceQuiver &pe);
 	private:
 		uint64_t numGreen;
 		uint64_t minLength;
@@ -71,7 +71,7 @@ class GreenExplorator
         int truncated;
         bool isomorphTest;
         bool dumpTruncated;
-		bool myIsomorphismNauty(PrincipalExtension &a, PrincipalExtension &b);
+		bool myIsomorphismNauty(IceQuiver &a, IceQuiver &b);
         std::map<uint64_t,mpz_class> sizes;	
         GreenSizeHash gsh;
        
