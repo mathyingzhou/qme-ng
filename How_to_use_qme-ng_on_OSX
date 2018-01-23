@@ -28,53 +28,7 @@ Please see http://www.boost.org/doc/libs/1_60_0/more/getting_started/unix-varian
 
 5.Modify the Makefile
 
-I will give you my version of Makefile that works on my computer later. The problem with Perotin’s Makefile on MacOSX is that it does not work. The libraries and header files in GMP and Boost are NOT included at all which is a huge problem. You need to add to both the -I (include, where do all header files come from) and -L (library, where do all the libraries come from), both of which are from steps 2 and 3.
-
-Here is my Makefile. Yours may be a bit different but you probably want to add to both -I and -L using where your GMP and Boost header files and libraries are. The bold parts are what I added. /usr/local/lib contains my GMP libraries, my /usr/local/boost/lib contains my boost libraries, my /usr/local/include contains my GMP header files and my /usr/local/boost_1_60_0 contains my boost header files. If your Boost version is not 1.60.0 or you install all these things in different places than I do, you need to change your Makefile.
-
-CC=g++
-CCFLAGS=-D__STDC_LIMIT_MACROS -D__cplusplus -O3 -march=native
-LDFLAGS=-L/usr/local/lib -L/usr/local/boost/lib -lboost_program_options -lgmp -lgmpxx
-SRCDIR=src
-INC=-I./include -I/usr/local/include -I/usr/local/boost_1_60_0
-
-all: qme-ng
-Exception.o: $(SRCDIR)/Exception.cpp
-$(CC) $(CCFLAGS) $< $(INC) -c
-greenSizeHash.o: $(SRCDIR)/greenSizeHash.cpp
-$(CC) $(CCFLAGS) $< $(INC) -c
-carquois.o: $(SRCDIR)/carquois.cpp Exception.o
-$(CC) $(CCFLAGS) $< $(INC) -c
-principalExtension.o: $(SRCDIR)/principalExtension.cpp Exception.o
-$(CC) $(CCFLAGS) $< $(INC) -c
-mutexplorator.o: $(SRCDIR)/mutexplorator.cpp carquois.o Exception.o
-$(CC) $(CCFLAGS) $< $(INC) -c
-greenexplorator.o: $(SRCDIR)/greenexplorator.cpp greenSizeHash.o principalExtension.o Exception.o
-$(CC) $(CCFLAGS) $< $(INC) -c
-greenfinder.o: $(SRCDIR)/greenfinder.cpp principalExtension.o Exception.o
-$(CC) $(CCFLAGS) $< $(INC) -c
-mutexploratorSeq.o: $(SRCDIR)/mutexploratorSeq.cpp carquois.o Exception.o mutexplorator.o
-$(CC) $(CCFLAGS) $< $(INC) -c
-rng.o: $(SRCDIR)/rng.c
-$(CC) $(CCFLAGS) $< $(INC) -c
-naututil.o: $(SRCDIR)/naututil.c
-$(CC) $(CCFLAGS) $< $(INC) -c
-nauty.o: $(SRCDIR)/nauty.c
-$(CC) $(CCFLAGS) $< $(INC) -c
-nautil.o: $(SRCDIR)/nautil.c
-$(CC) $(CCFLAGS) $< $(INC) -c
-nausparse.o : $(SRCDIR)/nausparse.c
-$(CC) $(CCFLAGS) $< $(INC) -c
-naugraph.o : $(SRCDIR)/naugraph.c
-$(CC) $(CCFLAGS) $< $(INC) -c
-nautinv.o : $(SRCDIR)/nautinv.c
-$(CC) $(CCFLAGS) $< $(INC) -c
-
-qme-ng: qme-ng.cpp greenexplorator.o greenfinder.o mutexploratorSeq.o mutexplorator.o greenSizeHash.o principalExtension.o carquois.o Exception.o nautil.o rng.o nauty.o naututil.o nausparse.o naugraph.o nautinv.o
-$(CC) $(CCFLAGS) $(INC) $^ $(LDFLAGS) -o $@
-
-clean:
--rm -f *.o qme-ng *.cpp~ src/*.cpp~ include/*.hpp~ src/*.c~ include/*.h~
+Please use my Makefile which is different from Perotin's.
 
 Notes:
 
