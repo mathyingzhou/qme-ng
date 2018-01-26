@@ -40,9 +40,9 @@ IceQuiver::IceQuiver(const IceQuiver &ca)
     }
     mutationString = ca.mutationString;
     this->greenVertices = ca.greenVertices;    
-    this->graphAJour = ca.graphAJour;
+    this->graphIsUpToDate = ca.graphIsUpToDate;
     multiplicity=ca.multiplicity;
-    if(ca.graphAJour)
+    if(ca.graphIsUpToDate)
     {
         this->nbVertexsNauty = ca.nbVertexsNauty;
         multiplicities = ca.multiplicities;
@@ -66,7 +66,7 @@ IceQuiver::IceQuiver(Quiver c)
         M[i*n+i+n/2] = mpz_class(1);
         M[(i+n/2)*n+i] = mpz_class(-1);
     }
-    this->graphAJour = false;
+    this->graphIsUpToDate = false;
     multiplicity[0] = 1;
     semiFreed = false;
     mutationsSize = 0;
@@ -135,7 +135,7 @@ IceQuiver::IceQuiver(const char *file)
         }
     }
     this->n=n;
-    this->graphAJour = false;
+    this->graphIsUpToDate = false;
     multiplicity[0] = 1;
     semiFreed = false;
     mutationsSize = 0;
@@ -233,7 +233,7 @@ int IceQuiver::mutate(int k, mpz_class p)
     }
     greenVertices.clear();
     this->generateGreenVertices();
-    this->graphAJour = false;
+    this->graphIsUpToDate = false;
     mutationString = "";
     if(greenVertices.size() == 0) { return 1;}
     else { return 2;}    
@@ -407,7 +407,7 @@ void IceQuiver::genGraph()
     statsblk stats;
     setword workspace[5*MAXM];
 
-    if(!this->graphAJour)
+    if(!this->graphIsUpToDate)
     {
     multiplicities.clear();
     // 1. Count multiplicities > 1 to get number of extra verticies
@@ -516,7 +516,7 @@ void IceQuiver::genGraph()
 
         nauty(nautyG,lab1,ptn,NULL,orbits,&options,&stats,
                                   workspace,5*MAXM,m,nbVertexsNauty,nautyGC);
-        this->graphAJour=true;    
+        this->graphIsUpToDate=true;    
     }
 }
 
@@ -526,10 +526,10 @@ graph *IceQuiver::getNautyGraph()
    // Quiver *quiver=NULL;
    // graph *g;
    // int i;
-    if(!this->graphAJour)
+    if(!this->graphIsUpToDate)
     {
         this->genGraph();
-        this->graphAJour=true;
+        this->graphIsUpToDate=true;
     }
     return  (graph *)&nautyGC;
 }
