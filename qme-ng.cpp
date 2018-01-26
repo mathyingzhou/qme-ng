@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     type_quiver["D"] = D;
     type_quiver["E"] = E;
     type_quiver["ATILDE"] = ATILDE;
-    type_quiver["ATILDEALT"] = ATILDEALT;
+    type_quiver["X"] = X;
     type_quiver["DTILDE"] = DTILDE;
     type_quiver["ETILDE"] = ETILDE;
     type_quiver["SPORADIC"] = SPORADIC;
@@ -69,9 +69,9 @@ int main(int argc, char **argv)
         ("file,f", boost::program_options::value<std::string>(), "Exchange matrix file (n * n)")
         /*("eefile,e", boost::program_options::value<std::string>(), "Extended exchange matrix file (2n * n)")*/
         ("iqfile,i", boost::program_options::value<std::string>(), "Exchange matrix of ice quiver file (2n * 2n)")
-        ("type,t", boost::program_options::value<std::string>(), "Quiver type (A, D, E, ATILDE, DTILDE, ETILDE, SPORADIC, UNAMED, E_ELIPTIC)")
+        ("type,t", boost::program_options::value<std::string>(), "Quiver type (A, D, E, ATILDE, DTILDE, ETILDE, SPORADIC, UNAMED, E_ELIPTIC, X)")
         ("size,s", boost::program_options::value< std::vector<int> >(),"Quiver size (must be used with type)")
-        ("orientation,o", boost::program_options::value<std::string>(), "Orientation (a sequence of l and r to denote orientation, if orientation is not given the default orientation will be used)")
+        ("orientation,o", boost::program_options::value<std::string>(), "Orientation (a sequence of l and r to denote orientation, if orientation is not given the default orientation will be used, can not be used for E_ELIPTIC or X)")
         ("green,g", "Green exploration")
         ("one", boost::program_options::value<int>(&random_tries)->default_value(0), "Find one green suite, give number of tries")
         ("p", boost::program_options::value<mpz_class>(&p)->default_value(0),"P param")
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
                     orientation = vm["orientation"].as<std::string>();
                 }
                 else {
-                    orientation = "d";//If orientation is not given then we use the default orientation.
+                    orientation = "";//If orientation is not given then we use the default orientation.
                 }
                 it_map = type_quiver.find(type);
                 if(it_map == type_quiver.end())
@@ -126,11 +126,14 @@ int main(int argc, char **argv)
                 {
                     //Type & size
                     if(size.size() == 1) {
-                        quiver = new Quiver(it_map->second,size[0]);
+                        if ((it_map->second == E_ELIPTIC || it_map->second == X) && vm.count("orientation")) {
+                            throw Exception("E_ELIPTIC and X do not allow non-default orientations!");
+                        }
+                        quiver = new Quiver(it_map->second,size[0], orientation);
                     }
-                    //Type, size and orientation for ATILDE
-                    if(size.size() == 2) {
-                        quiver = new Quiver(it_map->second,size[0],size[1]);
+                    else {//absurd size length
+                        std::cerr << desc << "\n";
+                        return 1;
                     }
                 }    
             }
