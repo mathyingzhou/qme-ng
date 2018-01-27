@@ -99,7 +99,7 @@ class IceQuiver
 		void forceGreenVertex(int s);
 		inline bool getGraphAJour()
 		{
-			return graphAJour;
+			return graphIsUpToDate;
 		}
 		inline void setMultiplicity(uint64_t size, mpz_class mul)
 		{
@@ -169,7 +169,7 @@ class IceQuiver
         graph nautyG[MAXN*MAXM];
 		graph nautyGC[MAXN*MAXM];
 		set *gv;
-		bool graphAJour;
+		bool graphIsUpToDate;
         bool semiFreed;
         std::string mutationString;
         uint64_t mutationsSize;

@@ -52,7 +52,7 @@
 #define SPORADIC 6
 #define UNAMED 7
 #define E_ELIPTIC 8
-#define ATILDEALT 9
+#define X 9
 #define B 10
 #define C 11
 #define F 12
@@ -77,7 +77,7 @@ class Quiver
 		/* Constructeurs et Destructeurs */
 		Quiver(int n);
 		Quiver();
-		Quiver(int type, int nbVertices, int orientation=0);
+        Quiver(int type, int nbVertices, std::string orientation);
 		Quiver(const Quiver &ca);
 		Quiver(const Quiver &ca, int k);
 		Quiver(int ** matrix, int n,int indice);
@@ -136,26 +136,26 @@ class Quiver
 		}
 		inline int graphIsAJour()
 		{
-			return graphAJour;
+			return graphIsUpToDate;
 		}
 		std::string getMutations();
 
-		inline int getNextI()
-		{
-			return nextI;
-		}
-		inline int getNextJ()
-		{
-			return nextJ;
-		}
-		inline void setNextI(int i)
-		{
-			nextI = i;
-		}
-		inline void setNextJ(int j)
-		{
-			nextJ = j;
-		}
+		//inline int getNextI()
+		//{
+			//return nextI;
+		//}
+		//inline int getNextJ()
+		//{
+			//return nextJ;
+		//}
+		//inline void setNextI(int i)
+		//{
+			//nextI = i;
+		//}
+		//inline void setNextJ(int j)
+		//{
+			//nextJ = j;
+		//}
 		
 		/* Getter avancés pour raisonnements locaux */
 		std::vector<int> getNeighbours(int vertex);
@@ -173,15 +173,15 @@ class Quiver
 		int **M;//The exchange matrix
 		int n;//The number of vertices
 		int absVal(int k);//Take the absolute value
-		int graphAJour;
+		int graphIsUpToDate;
 		std::vector<int> mutations;
 		int score;
 		void genScore();
 		int semifree;
 		int nbNeighboursMax;
 		int connected;
-		int nextI;
-		int nextJ;
+		//int nextI;
+		//int nextJ;
 	    graph nautyG[MAXN*MAXM];
 		graph nautyGC[MAXN*MAXM];
 		set *gv;

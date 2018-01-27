@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2012, Joris Calabrese,
  *                          Grégoire Dupont, 
  *                          Matthieu Pérotin
+ *               2018,      Ying Zhou
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,12 +48,12 @@ Quiver::Quiver(int n)
             M[i][j]=0;
         }        
     this->n=n;
-    this->graphAJour=0;
+    this->graphIsUpToDate=0;
     semifree=0;
     nbNeighboursMax = -1;
     connected = -1;
-    nextI=1;
-    nextJ=0;
+    //nextI=1;
+    //nextJ=0;
 }
 
 /*
@@ -81,10 +82,10 @@ Quiver::Quiver(const Quiver &ca)
     {
         this->semifree = 1;
     }
-    this->graphAJour=ca.graphAJour;
+    this->graphIsUpToDate=ca.graphIsUpToDate;
     this->mutations = ca.mutations;
     this->score = ca.score;
-    if(ca.graphAJour)
+    if(ca.graphIsUpToDate)
     {
         for(i=0;i<2*n;i++)
             nautyGC[i]=ca.nautyGC[i];
@@ -92,8 +93,8 @@ Quiver::Quiver(const Quiver &ca)
     
     this->nbNeighboursMax = ca.nbNeighboursMax;
     this->connected = ca.connected;
-    this->nextI = ca.nextI;
-    this->nextJ = ca.nextJ;
+    //this->nextI = ca.nextI;
+    //this->nextJ = ca.nextJ;
     
 }
 
@@ -132,12 +133,12 @@ Quiver::Quiver(const Quiver &ca, int k)
         this->semifree = 1;
     }
 
-    this->graphAJour=0;
+    this->graphIsUpToDate=0;
     semifree=0;
     nbNeighboursMax = -1;
     connected = -1;
-    nextI=1;
-    nextJ=0;
+    //nextI=1;
+    //nextJ=0;
 }
 
 /*
@@ -160,13 +161,13 @@ Quiver::Quiver(int ** mat_quiver, int nbVertices, int indice)
         for(j=0;j<n;j++)
             M[i][j]=mat_quiver[i][j];
     //this->n=n; //Assign field to itself
-    this->graphAJour=0;
+    this->graphIsUpToDate=0;
     this->genScore();
     semifree=0;
     nbNeighboursMax = -1;
     connected = -1;
-    nextI=1;
-    nextJ=0;
+    //nextI=1;
+    //nextJ=0;
 }
 
 /* But construire des quiver types
@@ -184,12 +185,54 @@ Quiver::Quiver(int ** mat_quiver, int nbVertices, int indice)
     Précondition: type d'un type défini cf ci-dessus et .h
     PostCondition: les structures de données et les données de l'objet sont désallouées
 */
-Quiver::Quiver(int type, int nbVertices, int orientation)
+//TODO:nbVertices is a completely misleading name that needs to be fixed ASAP
+Quiver::Quiver(int type, int nbVertices, std::string orientation)
 {
-    int i;
-    
+    int i, tempCounter, orientationLength;
+    int intOrientation[nbVertices];//Translate orientation to int
+    //Set up orientation
+    switch(type) {//E_ELIPTIC and X accept no non-default orientation
+        case A:
+        case D:
+        case E: orientationLength = nbVertices - 1; break;
+        case ATILDE: orientationLength = (nbVertices == 1 ? 1 : nbVertices + 1); break;
+        case DTILDE:
+        case ETILDE: orientationLength = nbVertices; break;
+        case SPORADIC: orientationLength = (nbVertices == 3 ? 3 : 6); break;
+        case UNAMED: orientationLength = nbVertices; break;
+        case E_ELIPTIC: orientationLength = 0; break;
+        case X: orientationLength = 0; break;
+        default: throw Exception("ERROR: type not found");
+    }
+    if (!orientation.length()) {//default
+        for (tempCounter = 0; tempCounter < orientationLength; tempCounter++) {
+            intOrientation[tempCounter] = 1;
+        }
+    }
+    else if (orientation.length() != orientationLength) {//Orientation is too short
+        throw Exception("ERROR: the length of orientation is wrong");
+    }
+    else {//If the length of orientation is right then let's check the content)
+        for (tempCounter = 0; tempCounter < orientationLength; tempCounter++) {
+            if (orientation.at(tempCounter) == 'r') {
+                intOrientation[tempCounter] = 1;
+            }
+            else if (orientation.at(tempCounter) == 'l') {
+                intOrientation[tempCounter] = -1;
+            }
+            else {
+                throw Exception("ERROR: the orientation contains symbols other than l and r");
+            }
+        }
+    }
+    #ifdef DEBUG
+    std::cout << "The orientation is:";
+    for (tempCounter = 0; tempCounter < orientationLength; tempCounter++)
+        std::cout << intOrientation[tempCounter] << " ";
+    #endif
+    std::cout << "\n";
     // Dans tous les cas le graphe ne sera pas à jour
-    this->graphAJour=0;
+    this->graphIsUpToDate=0;
     this->semifree=0;
     switch(type)
     {
@@ -203,8 +246,8 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                 (this->M)[i]=(int *)calloc(n,sizeof(int));
             for(i=0;i<n-1;i++)
             {
-                M[i][i+1]=1;
-                M[i+1][i]=-1;
+                M[i][i+1]=intOrientation[i];
+                M[i+1][i]=-intOrientation[i];
             }
             
         break;
@@ -218,11 +261,11 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                 (this->M)[i]=(int *)calloc(n,sizeof(int));
             for(i=0;i<n-2;i++)
             {
-                M[i][i+1]=1;
-                M[i+1][i]=-1;
+                M[i][i+1]=intOrientation[i];
+                M[i+1][i]=-intOrientation[i];
             }
-            M[n-3][n-1]=1;
-            M[n-1][n-3]=-1;
+            M[n-3][n-1]=intOrientation[n-2];
+            M[n-1][n-3]=-intOrientation[n-2];
             
         break;
         case E:
@@ -237,55 +280,37 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                         (this->M)[i]=(int *)calloc(n,sizeof(int));
                     for(i=0;i<n-2;i++)
                     {
-                        M[i][i+1]=1;
-                        M[i+1][i]=-1;
+                        M[i][i+1]=intOrientation[i];
+                        M[i+1][i]=-intOrientation[i];
                     }
-                    M[n-4][n-1]=1;
-                    M[n-1][n-4]=-1;
+                    M[n-4][n-1]=intOrientation[n-2];
+                    M[n-1][n-4]=-intOrientation[n-2];
                 break;
                 default:
                     throw Exception("ERROR: bad vertex number asked");
             }    
         break;
         case ATILDE:
-            n=nbVertices+orientation;
+            n = nbVertices + 1;
             if(n<2)
                 throw Exception("ERROR: not enough vertices");
                 
             this->M=(int **)calloc(n,sizeof(int *));
             for(i=0;i<n;i++)
                 (this->M)[i]=(int *)calloc(n,sizeof(int));
-            for(i=0;i<nbVertices;i++)
-            {
-                M[i][i+1]=1;
-                M[i+1][i]=-1;
+            if (n != 2) {
+                for(i=0;i<nbVertices;i++)
+                {
+                    M[i][i+1] = intOrientation[i];
+                    M[i+1][i] = -intOrientation[i];
+                }
+                M[0][n-1] = -intOrientation[n-1];
+                M[n-1][0] = intOrientation[n-1];
             }
-            for(i=1;i<orientation;i++)
-            {
-                M[nbVertices+orientation-i][nbVertices+orientation-(i+1)]=1;
-                M[nbVertices+orientation-(i+1)][nbVertices+orientation-i]=-1;
+            else {//Kronecker quiver
+                M[0][1] = intOrientation[0];
+                M[1][0] = -intOrientation[0];
             }
-            M[0][n-1] = 1;
-            M[n-1][0]=-1;
-            #ifdef DEBUG
-            this->print();
-            #endif
-        break;
-        case ATILDEALT:
-            n=nbVertices+orientation;
-            if(n<2)
-                throw Exception("ERROR: not enough vertices");
-                
-            this->M=(int **)calloc(n,sizeof(int *));
-            for(i=0;i<n;i++)
-                (this->M)[i]=(int *)calloc(n,sizeof(int));
-            for(i=0;i<n-1;i++)
-            {
-                M[i][i+1]=1-(2*(i%2));
-                M[i+1][i]=-1+(2*(i%2));
-            }
-            M[n-1][0]=-1;
-            M[0][n-1]=1;
             #ifdef DEBUG
             this->print();
             #endif
@@ -299,13 +324,13 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                 (this->M)[i]=(int *)calloc(n,sizeof(int));
             for(i=1;i<n-2;i++)
             {
-                M[i][i+1]=1;
-                M[i+1][i]=-1;
+                M[i][i+1]=intOrientation[i];
+                M[i+1][i]=-intOrientation[i];
             }
-            M[n-3][n-1]=1;
-            M[n-1][n-3]=-1;
-            M[0][2]=1;
-            M[2][0]=-1;
+            M[n-3][n-1]=intOrientation[n-2];
+            M[n-1][n-3]=-intOrientation[n-2];
+            M[0][2]=intOrientation[0];
+            M[2][0]=-intOrientation[0];
         break;
         case ETILDE:
             switch(nbVertices)
@@ -316,64 +341,60 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                     for(i=0;i<n;i++)
                         (this->M)[i]=(int *)calloc(n,sizeof(int));
 
-                    M[0][2] = -1;
-                    M[1][3] = -1;
-                    M[2][0] = 1;
-                    M[2][5] = -1;
-                    M[3][1] = 1;
-                    M[3][5] = -1;
-                    M[4][5] = 1;
-                    M[4][6] = -1;
-                    M[5][2] = 1;
-                    M[5][3] = 1;
-                    M[5][4] = -1;
-                    M[6][4] = 1;                
+                    M[0][2] = -intOrientation[0];
+                    M[1][3] = -intOrientation[1];
+                    M[2][0] = intOrientation[0];
+                    M[2][5] = -intOrientation[2];
+                    M[3][1] = intOrientation[1];
+                    M[3][5] = -intOrientation[3];
+                    M[4][5] = intOrientation[4];
+                    M[4][6] = -intOrientation[5];
+                    M[5][2] = intOrientation[2];
+                    M[5][3] = intOrientation[3];
+                    M[5][4] = -intOrientation[4];
+                    M[6][4] = intOrientation[5];
                     break;
                 case 7:
                     n=nbVertices+1;
                     this->M=(int **)calloc(n,sizeof(int *));
                     for(i=0;i<n;i++)
                         (this->M)[i]=(int *)calloc(n,sizeof(int));
-                    
-                    M[0][2] = -1;
-                    M[1][3] = -1;
-                    M[2][0] = 1;
-                    M[2][4] = -1;
-                    M[3][1] = 1;
-                    M[3][5] = -1;
-                    M[4][2] = 1;
-                    M[4][7] = -1;
-                    M[5][3] = 1;
-                    M[5][7] = -1;
-                    M[6][7] = 1;
-                    M[7][4] = 1;
-                    M[7][5] = 1;
-                    M[7][6] = -1;
-                    
-
+                    M[0][2] = -intOrientation[0];
+                    M[1][3] = -intOrientation[1];
+                    M[2][0] = intOrientation[0];
+                    M[2][4] = -intOrientation[2];
+                    M[3][1] = intOrientation[1];
+                    M[3][5] = -intOrientation[3];
+                    M[4][2] = intOrientation[2];
+                    M[4][7] = -intOrientation[4];
+                    M[5][3] = intOrientation[3];
+                    M[5][7] = -intOrientation[5];
+                    M[6][7] = intOrientation[6];
+                    M[7][4] = intOrientation[4];
+                    M[7][5] = intOrientation[5];
+                    M[7][6] = -intOrientation[6];
                     break;
                 case 8:
                     n=nbVertices+1;
                     this->M=(int **)calloc(n,sizeof(int *));
                     for(i=0;i<n;i++)
                         (this->M)[i]=(int *)calloc(n,sizeof(int));
-                    M[0][2] = -1;
-                    M[0][7] = 1;
-                    M[1][3] = -1;
-                    M[2][0] = 1;
-                    M[2][4] = -1;
-                    M[3][1] = 1;
-                    M[3][6] = -1;
-                    M[4][2] = 1;
-                    M[4][6] = -1;
-                    M[5][6] = 1;
-                    M[6][3] = 1;
-                    M[6][4] = 1;
-                    M[6][5] = -1;
-                    M[7][0] = -1;
-                    M[7][8] = 1;
-                    M[8][7] = -1;
-                    
+                    M[0][2] = -intOrientation[0];
+                    M[0][7] = intOrientation[1];
+                    M[1][3] = -intOrientation[2];
+                    M[2][0] = intOrientation[0];
+                    M[2][4] = -intOrientation[3];
+                    M[3][1] = intOrientation[2];
+                    M[3][6] = -intOrientation[4];
+                    M[4][2] = intOrientation[3];
+                    M[4][6] = -intOrientation[5];
+                    M[5][6] = intOrientation[6];
+                    M[6][3] = intOrientation[4];
+                    M[6][4] = intOrientation[5];
+                    M[6][5] = -intOrientation[6];
+                    M[7][0] = -intOrientation[1];
+                    M[7][8] = intOrientation[7];
+                    M[8][7] = -intOrientation[7];
                 break;
                 default:
                     throw Exception("ERROR: bad vertex number asked");
@@ -388,34 +409,34 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                     (this->M)[i]=(int *)calloc(n,sizeof(int));
                 for(i=0;i<n-1;i++)
                 {
-                    M[i][i+1] = 2;
-                    M[i+1][i] = -2;
+                    M[i][i+1] = 2 * intOrientation[i];
+                    M[i+1][i] = -2 * intOrientation[i];
                 }
-                M[n-1][0] = 2;
-                M[0][n-1] = -2;
+                M[n-1][0] = 2 * intOrientation[n-1];
+                M[0][n-1] = -2 * intOrientation[n-1];
             }
             else if (n==4)
             {
                 this->M=(int **)calloc(n,sizeof(int *));
                 for(i=0;i<n;i++)
                     (this->M)[i]=(int *)calloc(n,sizeof(int));
-                M[0][1] = -1;
-                M[1][0] = 1;
+                M[0][1] = -intOrientation[0];
+                M[1][0] = intOrientation[0];
                 
-                M[0][3] = -1;
-                M[3][0] = 1;
+                M[0][3] = -intOrientation[2];
+                M[3][0] = intOrientation[2];
                 
-                M[3][1] = 1;
-                M[1][3]= -1;
+                M[3][1] = intOrientation[4];
+                M[1][3]= -intOrientation[4];
                 
-                M[2][1] = 1;
-                M[1][2] = -1;
+                M[2][1] = intOrientation[3];
+                M[1][2] = -intOrientation[3];
                 
-                M[2][3] = 1;
-                M[3][2] = -1;
+                M[2][3] = intOrientation[5];
+                M[3][2] = -intOrientation[5];
                 
-                M[0][2] = 2;
-                M[2][0] = -2;
+                M[0][2] = 2 * intOrientation[1];
+                M[2][0] = -2 * intOrientation[1];
                 
             }
             else
@@ -433,13 +454,13 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                     (this->M)[i]=(int *)calloc(n,sizeof(int));
                 for(i=0;i<n-2;i++)
                 {
-                    M[i][i+1]=1;
-                    M[i+1][i]=-1;
+                    M[i][i+1]=intOrientation[i+1];
+                    M[i+1][i]=-intOrientation[i+1];
                 }
-                M[n-3][n-1]=1;
-                M[n-1][n-3]=-1;
-                M[0][1]=2;
-                M[1][0]=-2;
+                M[n-3][n-1]=intOrientation[n-1];
+                M[n-1][n-3]=-intOrientation[n-1];
+                M[0][1]=2 * intOrientation[0];
+                M[1][0]=-2 * intOrientation[0];
             }
             else
                 throw Exception("number of vertices too small");
@@ -484,8 +505,6 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
                 
                 M[5][2]=1;
                 M[2][5]=-1;
-    
-                
             }
             else if(nbVertices==7)
             {
@@ -552,19 +571,85 @@ Quiver::Quiver(int type, int nbVertices, int orientation)
             }
             else
             {
-                throw Exception("Eliptique asked but wrong vertex number (must be 6,7 or 8)");
+                throw Exception("Eliptic asked but wrong vertex number (must be 6,7 or 8)");
+            }
+            break;
+        case  X://Exceptional quivers of finite mutation type, from Derksen-Owen arXiv:0804.0787 [math.CO]
+            if(nbVertices>=6 && nbVertices<8)
+            {
+                n=nbVertices;
+                this->M=(int **)calloc(n,sizeof(int *));
+                for(i=0;i<n;i++)
+                    (this->M)[i]=(int *)calloc(n,sizeof(int));
+            }
+            
+            if(nbVertices==6)
+            {
+                M[0][1]=2;
+                M[1][0]=-2;
+                
+                M[0][2]=-1;
+                M[2][0]=1;
+                
+                M[1][2]=1;
+                M[2][1]=-1;
+                
+                M[2][3]=1;
+                M[3][2]=-1;
+                
+                M[2][4]=-1;
+                M[4][2]=1;
+                
+                M[3][4]=2;
+                M[4][3]=-2;
+                
+                M[2][5]=-1;
+                M[5][2]=1;
+            }
+            else if(nbVertices==7)
+            {
+                M[0][1]=2;
+                M[1][0]=-2;
+                
+                M[0][2]=-1;
+                M[2][0]=1;
+                
+                M[1][2]=1;
+                M[2][1]=-1;
+                
+                M[2][3]=1;
+                M[3][2]=-1;
+                
+                M[2][4]=-1;
+                M[4][2]=1;
+                
+                M[3][4]=2;
+                M[4][3]=-2;
+                
+                M[2][5]=-1;
+                M[5][2]=1;
+                
+                M[2][6]=1;
+                M[6][2]=-1;
+                
+                M[5][6]=-2;
+                M[6][5]=2;
+            }
+            else
+            {
+                throw Exception("X_n asked but wrong vertex number (must be 6 or 7)");
             }
             break;
         default:
-            throw Exception("Bad type");
+            throw Exception("ERROR: Bad type");
     } // end switch
     //Generate score
     this->genScore();
     nbNeighboursMax = -1;
     // This quiver is connected
     connected = 1;
-    nextI=1;
-    nextJ=0;
+    //nextI=1;
+    //nextJ=0;
 
 }
 //Import quivers from files, both .qmu files and other files.
@@ -635,11 +720,11 @@ Quiver::Quiver(const char *file)
         }        
     }
     this->n=n;
-    this->graphAJour=0;
+    this->graphIsUpToDate=0;
     nbNeighboursMax = -1;
     connected = -1;
-    nextI=1;
-    nextJ=0;
+    //nextI=1;
+    //nextJ=0;
 }
 
 /*
@@ -736,10 +821,10 @@ void Quiver::mutate(int k)
     //If the exchange matrix is of infinite type then print an exception and getMutations().
     if(this->infinite())
         throw Exception("Mutation class is infinite ! " + getMutations());
-    //Set graphAJour to 0.
-    if(this->graphAJour)
+    //Set graphIsUpToDate to 0.
+    if(this->graphIsUpToDate)
     {
-        this->graphAJour=0;
+        this->graphIsUpToDate=0;
     }
 
     /*
@@ -788,10 +873,10 @@ void Quiver::setM(int i, int j, int val)
     if(i<n && j < n && i>=0 && j>=0)
     {
         M[i][j]=val;
-        //Restore graphAJour and connected to indeterminate after changing the exchange matrix
-        if(this->graphAJour)
+        //Restore graphIsUpToDate and connected to indeterminate after changing the exchange matrix
+        if(this->graphIsUpToDate)
         {
-            this->graphAJour = 0;
+            this->graphIsUpToDate = 0;
         }
         if(this->connected)
         {
@@ -803,7 +888,8 @@ void Quiver::setM(int i, int j, int val)
     
     
 }
-/* Cette fonction génère les structures qui vont bien pour les appels à Nauty */
+/* This function generates the structures that go well for calls to Nauty */
+//TODO: This function needs to be fixed in the Valued Quivers Update.
 void Quiver::genGraph()
 {
     int i,j,m,nbVertexsNauty;
@@ -812,13 +898,13 @@ void Quiver::genGraph()
     statsblk stats;
     setword workspace[5*MAXM];
     
-    if(!this->graphAJour)
+    if(!this->graphIsUpToDate)
     {
         
         nbVertexsNauty = 2 * this->getN();
         m=(nbVertexsNauty + WORDSIZE - 1)/WORDSIZE;
 
-        /* Si on trouve une valeur strictement positive dans la matrix d'incidence, alors on ajoute une arrête dans notre graphe */
+        /* If we find a positive value in the exchange matrix, then we add an arrow in our graph */
         for(i=0;i<this->getN();i++)
         {
             gv=GRAPHROW(nautyG,i+this->getN(),m);
@@ -826,11 +912,11 @@ void Quiver::genGraph()
             
             gv=GRAPHROW(nautyG,i,m);
             EMPTYSET(gv,m);
-            /* On ajoute les fausses arrêtes entre le layer 0 et le layer 1 */
+            /* False edges are added between layer 0 and layer 1 */
             ADDELEMENT(gv,i+this->getN());
             for(j=0;j<this->getN();j++)
             {
-                /* multiplicité de 1 */
+                /* (1,k) arrow */
                 if(this->getM(i,j)==1)
                 {
                     gv=GRAPHROW(nautyG,i,m);
@@ -846,9 +932,9 @@ void Quiver::genGraph()
                 }
             }
         }
-        options.getcanon = TRUE;
-        options.digraph = TRUE;
-        options.defaultptn = FALSE;
+        options.getcanon = TRUE;//get canonically labelled graph
+        options.digraph = TRUE;//the graph contains arrows
+        options.defaultptn = FALSE;//the initial coloring of the graph is determined by lab1 and ptn
         nauty_check(WORDSIZE,m,nbVertexsNauty,NAUTYVERSIONID);
         
         for(i=0;i<2*n;i++)
@@ -861,21 +947,23 @@ void Quiver::genGraph()
         
         
         nauty(nautyG,lab1,ptn,NULL,orbits,&options,&stats,
-                                  workspace,5*MAXM,m,nbVertexsNauty,nautyGC);
-        this->graphAJour=1;    
+                                  workspace,5*MAXM,m,nbVertexsNauty,nautyGC);//A modified version of this is now densenauty
+        this->graphIsUpToDate=1;
     }
 }
 
-/* Cette fonction teste deux propriétés du Quiver:
+/* This function tests two Quiver properties:
  *
- * - Si le quiver a une arrête au moins triple alors il n'est pas de mutation finie (Cas 0)
- * - Si un vertex x est connecté à un vertex v par une arrête double, et si v est
- *    aussi connecté par une arrête double à un autre vertex, alors le quiver n'est pas de
- *    mutation finie (Cas 1)
+ * - If the quiver has at least 2 vertices and a (i,j)-arrow with either i or j then the quiver is not of finite mutation type (Case 0)
+ * - If a vertex x is connected to a vertex v by a (2,k) arrow and if v is
+ * also connected by a (2,l) to another vertex, so the quiver is not of
+ * finite mutation type (Case 1)
  *
- * Cette fonction renvoie vrai si l'un des deux cas présents ci-dessus est trouvé, et faux sinon.
- * Attention: ce n'est pas parceque cette fonction renvoie faux que le quiver est nécessairement de mutation finie !
+ * This function returns true if one of the two cases listed above is found, and false otherwise.
+ * Warning: it is not because this function returns false that the quiver is necessarily of finite mutation type!
+ * Moreover even if it returns true the quiver can still be not of finite mutation type if it is a valued quiver.
  */
+//TODO: Fix this function in the Valued Quiver Update
 bool Quiver::infinite()
 {
     int i,j,compteur;
@@ -905,12 +993,13 @@ bool Quiver::infinite()
 }
 
 
-
+//IF the Nauty graph is not up to date then generate it and return the canonical one (i.e. something probably already in the list).
 graph *Quiver::getNautyGraph()
 {
-    if(!this->graphAJour)
+    if(!this->graphIsUpToDate)
     {
         this->genGraph();
+        this->graphIsUpToDate = 1;
     }
     return  (graph *)&nautyGC;
 }
