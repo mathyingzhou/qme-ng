@@ -1,4 +1,4 @@
-qme-ng: Quiver Mutation Explorer
+qme-ng: Quiver Mutation Explorer (version 2.0.1)
 ================================
 
 Welcome to qme-ng !
