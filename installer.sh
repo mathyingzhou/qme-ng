@@ -16,6 +16,6 @@ cp -a /boost_1_66_0/. /usr/local/boost
 cd boost_1_66_0
 sudo ./bootstrap.sh —-prefix=/usr/local/boost
 sudo ./b2 install
-install_name_tool -change libboost_program_options.dylib /usr/local/lib/libboost_program_options.dylib qme-ng
 cd $QME_NG_PATH
+install_name_tool -change libboost_program_options.dylib /usr/local/lib/libboost_program_options.dylib qme-ng
 make all
