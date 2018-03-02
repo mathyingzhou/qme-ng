@@ -54,7 +54,7 @@ class IceQuiver
 		IceQuiver(const char* file);
 		~IceQuiver();
 		IceQuiver(const IceQuiver &ca);
-		int mutate(int k, mpz_class p);
+		int mutate(int k);
 		void print();
 		bool infinite(mpz_class p);
 		void toFile(const char* filename);
@@ -94,6 +94,7 @@ class IceQuiver
 			return (mutations.size()>0)?mutations[mutations.size()-1]:-1;
 		}
 		void generateGreenVertices();
+        void generateBannedVertices();
 		int getNextGreenVertex();
 		int getRandomGreenVertex();
 		void forceGreenVertex(int s);
@@ -153,7 +154,9 @@ class IceQuiver
             return mutationsSize;
         }
 		Quiver *getQuiver(void);
-		graph *getNautyGraph();
+        bool isSinkOfInfiniteTypeArrow(int);
+        bool isSourceOfInfiniteTypeArrow(int);
+		graph *oldGetNautyGraph();
         std::string mutationsToString();
         void shiftMultiplicities();
         void unshiftMultiplicities();
@@ -166,6 +169,7 @@ class IceQuiver
         std::map<mpz_class,mpz_class> multiplicities;
 		std::vector<int> mutations;
 		std::vector<int> greenVertices;
+        std::vector<int> bannedVertices;
         graph nautyG[MAXN*MAXM];
 		graph nautyGC[MAXN*MAXM];
 		set *gv;

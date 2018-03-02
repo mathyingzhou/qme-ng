@@ -45,14 +45,14 @@ class GreenExplorator
 	public:
 		GreenExplorator();
 		~GreenExplorator();
-		void printArbre();
+		void printTree();
 		int insertInList(IceQuiver &pe);
 		int insertInList(IceQuiver &pe, std::list<IceQuiver> &c);
 		void clearC();
 		void greenExploration(IceQuiver);
         inline void setIsomorphTest(bool value) { isomorphTest = value;};
         inline void setDumpTruncated(bool value) { dumpTruncated = value;};
-        inline void setP(mpz_class value) { p = value;};
+        //inline void setP(mpz_class value) { p = value;};
         inline void setMaxDepth(int value) { max_depth = value;};
 		
 	protected:
@@ -66,7 +66,7 @@ class GreenExplorator
 		uint64_t maxLength;
 		uint64_t infCut;
 		uint64_t depthCut;
-		mpz_class p;
+		//mpz_class p;
 		int max_depth;
         int truncated;
         bool isomorphTest;

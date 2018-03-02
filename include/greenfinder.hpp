@@ -45,13 +45,13 @@ class GreenFinder
 	public:
 		GreenFinder(IceQuiver , mpz_class, int, int);
 		void find(uint64_t tries);
-        inline void setP(mpz_class value) { p = value;};
+        //inline void setP(mpz_class value) { p = value;};
         inline void setMaxDepth(int value) { max_depth = value;};
 		
 	protected:
 		IceQuiver *depart;
 	private:
-		mpz_class p;
+		//mpz_class p;
 		int max_depth;
 		int min_depth;
        

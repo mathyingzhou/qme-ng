@@ -32,16 +32,19 @@
 #include <utility>
 #include <algorithm>
 #include <vector>
+#include <map>
 #include <stdlib.h>
 #include <boost/tokenizer.hpp>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <math.h>
+#include <gmpxx.h>
 #include <limits.h>
 #include "Exception.h"
 #define MAXN 100
 #include "nauty.h"
+#include "nautinv.h"
 
 #define A 0
 #define D 1
@@ -69,6 +72,8 @@
 #define GTILDE22 23
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+typedef std::pair<mpz_class,mpz_class> valued_arrow;
+typedef std::map<std::pair<mpz_class,mpz_class>,mpz_class> valued_arrow_mul;
 
 class Quiver
 {
@@ -84,16 +89,17 @@ class Quiver
 		Quiver(const char* file);
 		~Quiver();
 
-		/* Algorithmes */
+		/* Algorithms */
 		void mutate(int k);
 		bool infinite();
 		void genGraph();
+        void newGenGraph();
 		bool testInfiniEmpirique(int mutations);
 		void toFile(const char* filename);
 		void semiDestroy();
 		int getNbNeighboursMax();
 		int isConnected();
-		bool aUneDouble(int vertex);
+		bool isIncidentToDoubleEdges(int vertex);
 		bool isOrientedThreeCycle(int i, int j, int k);
 		bool isCyclic();
 
@@ -125,7 +131,8 @@ class Quiver
 		{
 			return n;
 		}
-		graph *getNautyGraph();
+		graph *oldGetNautyGraph();
+        graph *getNautyGraph();
 		inline int getScore()
 		{
 			return score;
@@ -134,7 +141,7 @@ class Quiver
 		{
 			return (mutations.size()>0)?mutations[mutations.size()-1]:-1;
 		}
-		inline int graphIsAJour()
+		inline int isGraphUpToDate()
 		{
 			return graphIsUpToDate;
 		}
@@ -156,24 +163,27 @@ class Quiver
 		//{
 			//nextJ = j;
 		//}
-		
+        bool isSimplyLaced();
 		/* Getter avancés pour raisonnements locaux */
 		std::vector<int> getNeighbours(int vertex);
-		std::vector<int> getNeighboursDoubles(int vertex);
-		std::vector<int> getNeighboursSimples(int vertex);
-		std::vector<int> getNeighboursSimplesPredecesseurs(int vertex);
-		std::vector<int> getNeighboursSimplesSuccesseurs(int vertex);
-		std::vector<int> getVertexsDoubleEdgeEntrante();
+		std::vector<int> getDoubleNeighbours(int vertex);
+		std::vector<int> getSimpleNeighbours(int vertex);
+		std::vector<int> getSimpleSources(int vertex);
+		std::vector<int> getSimpleSinks(int vertex);
+		std::vector<int> getInfiniteTypeArrowSources();
+        std::vector<int> getInfiniteTypeArrowSinks();
 		int getVertexOrigineDoubleEdge(int i);
-		std::vector<int> getVertexsPasDDoubleEdge();
-		int getNbNeighboursSimplesPredecesseurs(int vertex);
-		int getNbNeighboursSimplesSuccesseurs(int vertex);
+		std::vector<int> getVerticesWithInfiniteTypeArrows();
+		int getNbSimpleSources(int vertex);
+		int getNbSimpleSinks(int vertex);
 
 	private:
 		int **M;//The exchange matrix
 		int n;//The number of vertices
 		int absVal(int k);//Take the absolute value
+        int nbVerticesNauty;
 		int graphIsUpToDate;
+        valued_arrow_mul valuedArrowMultiplicities;
 		std::vector<int> mutations;
 		int score;
 		void genScore();

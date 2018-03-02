@@ -50,7 +50,7 @@ class MutExplorator
 		MutExplorator();
 		~MutExplorator();
 		virtual int isomorphismExplorator(Quiver depart,int granularite) = 0;
-		void printArbre();
+		void printTree();
 		void insertInList(Quiver *quiver);
 		bool isInC(Quiver *quiver);
 		Quiver getRepresentant();
