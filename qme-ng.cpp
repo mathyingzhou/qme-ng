@@ -32,6 +32,11 @@
 #include "time.h"
 #include <stdint.h>
 
+void test() {
+    fprintf(stderr, "qme-ng official testing.\n");
+    return;
+}
+
 int main(int argc, char **argv)
 {
     //int **test;
@@ -74,18 +79,24 @@ int main(int argc, char **argv)
         ("orientation,o", boost::program_options::value<std::string>(), "Orientation (a sequence of l and r to denote orientation, if orientation is not given the default orientation will be used, can not be used for E_ELIPTIC or X)")
         ("green,g", "Green exploration")
         ("one", boost::program_options::value<int>(&random_tries)->default_value(0), "Find one green suite, give number of tries")
-        ("p", boost::program_options::value<mpz_class>(&p)->default_value(0),"P param")
+        //("p", boost::program_options::value<mpz_class>(&p)->default_value(0),"P param")
         ("max_depth", boost::program_options::value<int>(&max_depth)->default_value(INT_MAX),"Max exploration depth")
         ("min_depth", boost::program_options::value<int>(&min_depth)->default_value(0),"Min exploration depth")
         ("no-iso,n", "Isomorph discrimination")
         ("dump-class,c", boost::program_options::value<std::string>(), "Dump Mutation Class")
         ("dump-trunk,k", "Dump truncated quivers")
+        ("test", "Testing")
     ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
     boost::program_options::notify(vm);
-    ge.setP(p);
+    //ge.setP(p);
     ge.setMaxDepth(max_depth);
+    if(vm.count("test"))
+    {
+        test();
+        return 0;
+    }
     if(vm.count("no-iso"))
     {
         ge.setIsomorphTest(false);
