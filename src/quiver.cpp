@@ -52,6 +52,7 @@ Quiver::Quiver(int n)
     semifree=0;
     nbNeighboursMax = -1;
     connected = -1;
+    nbVerticesNauty = -1;//To be calculated
     //nextI=1;
     //nextJ=0;
 }
@@ -93,20 +94,25 @@ Quiver::Quiver(const Quiver &ca)
     
     this->nbNeighboursMax = ca.nbNeighboursMax;
     this->connected = ca.connected;
+    this->nbVerticesNauty = ca.nbVerticesNauty;
+    this->valuedArrowMultiplicities = ca.valuedArrowMultiplicities;
     //this->nextI = ca.nextI;
     //this->nextJ = ca.nextJ;
     
 }
 
 /*
-But: Constructeur par recopie et augmentation
-Entrée: une référence sur un objet Quiver, un entier k
-Sortie: Néant
-Précondition: Néant
-PostCondition: les structures de données et les données de l'objet sont recopiées dans un Quiver de taille n+k
-    /!\     Le Quiver construit n'est pas connected !
-        Il est nécessaire d'appeler connecter(i) pour obtenir un Quiver connected obtenu en reliant le vertex i à
-            TOUS les autres.
+ Purpose: Build by copy, add k new vertices unconnected to the rest of the quiver
+    This weird function probably has never been used. In case it has I just got rid of the uninitialized places by initializing everything previously undefined to 0.
+ Input: a reference to a Quiver object, an integer k
+ Output: None
+ Precondition: None
+ PostCondition: Data structures and object data are copied into a Quiver of size n + k
+ Caution:
+ 1.The built Quiver is not connected!
+ It is necessary to call connect (i) to get a Quiver connected obtained by connecting the vertex i to
+ All the others.
+ 2.If k>1 many values aren't even initialized.
 */
 
 Quiver::Quiver(const Quiver &ca, int k)
@@ -121,12 +127,18 @@ Quiver::Quiver(const Quiver &ca, int k)
         for(i=0;i<ca.n;i++)
             for(j=0;j<ca.n;j++)
                 M[i][j]=ca.M[i][j];
-        for(i=0;i<n;i++)
-        {
-            M[i][n-1]=0;
-            M[n-1][i]=0;
+        for(i=ca.n;i<n;i++) {
+            for(j=0;j<ca.n;j++) {
+                M[i][j]=0;
+                M[j][i]=0;
+            }
         }
-        this->semifree = 0;
+        for(i=ca.n;i<n;i++) {
+            for(j=ca.n;j<n;j++) {
+                M[i][j]=0;
+            }
+        }
+            this->semifree = 0;
     }
     else
     {
@@ -137,6 +149,7 @@ Quiver::Quiver(const Quiver &ca, int k)
     semifree=0;
     nbNeighboursMax = -1;
     connected = -1;
+    nbVerticesNauty = -1;
     //nextI=1;
     //nextJ=0;
 }
@@ -166,6 +179,7 @@ Quiver::Quiver(int ** mat_quiver, int nbVertices, int indice)
     semifree=0;
     nbNeighboursMax = -1;
     connected = -1;
+    nbVerticesNauty = -1;
     //nextI=1;
     //nextJ=0;
 }
@@ -648,6 +662,7 @@ Quiver::Quiver(int type, int nbVertices, std::string orientation)
     nbNeighboursMax = -1;
     // This quiver is connected
     connected = 1;
+    nbVerticesNauty = -1;
     //nextI=1;
     //nextJ=0;
 
@@ -723,6 +738,7 @@ Quiver::Quiver(const char *file)
     this->graphIsUpToDate=0;
     nbNeighboursMax = -1;
     connected = -1;
+    nbVerticesNauty = -1;
     //nextI=1;
     //nextJ=0;
 }
@@ -855,6 +871,8 @@ void Quiver::mutate(int k)
     }
     //Compute score
     this->genScore();
+    nbVerticesNauty = -1;
+    this->valuedArrowMultiplicities.clear();
 }
 
 //Take the absolute value of an integer
@@ -882,6 +900,8 @@ void Quiver::setM(int i, int j, int val)
         {
             this->connected = -1;
         }
+        this->nbVerticesNauty = -1;
+        this->valuedArrowMultiplicities.clear();
     }
     else
         throw Exception("DOMAIN_ERROR: setM");
@@ -952,6 +972,134 @@ void Quiver::genGraph()
     }
 }
 
+/* This function generates the structures that go well for calls to Nauty */
+void Quiver::newGenGraph()
+{
+    int i,j,m;
+    int lab1[MAXN],ptn[MAXN],orbits[MAXN];
+    std::map<valued_arrow,mpz_class> multiplicities_index;
+    std::map<valued_arrow,mpz_class>::iterator mul_it;
+    mpz_class nbSN_tmp = 0;
+    
+    static DEFAULTOPTIONS_GRAPH(options);
+    statsblk stats;
+    setword workspace[5*MAXM];
+    
+    if(!this->graphIsUpToDate)
+    {
+        valuedArrowMultiplicities.clear();
+        // 1. Count valuedArrowMultiplicities to get number of extra verticies
+        for(i=0;i<this->getN();i++)
+        {
+            for(j=0;j<this->getN();j++)
+            {
+                if(this->getM(i,j) * this->getM(j,i) < -1 && this->getM(i,j) > 0)
+                {
+                    valuedArrowMultiplicities[std::make_pair(this->getM(i,j), -this->getM(j,i))]+=1;
+                    //One extra arrow for each valued arrow that isn't a (1,1) arrow.
+                }
+            }
+        }
+        // 2. On with graph construction...
+        
+        //Add the extra nauty vertices corresponding to non-(1,1) valued arrows
+        nbVerticesNauty = 0;
+        nbSN_tmp = 0;
+        for(mul_it=valuedArrowMultiplicities.begin();mul_it!=valuedArrowMultiplicities.end();mul_it++)
+        {
+            multiplicities_index[mul_it->first] = nbVerticesNauty;
+            nbSN_tmp += mul_it->second;//Test whether an overflow exists
+            if(nbSN_tmp.fits_sint_p()) {
+                nbVerticesNauty = nbVerticesNauty + mul_it->second.get_si();
+            }
+            else
+            {
+                throw Exception("ERROR: nbVerticesNauty is too large!");
+            }
+        }
+        
+        nbSN_tmp += this->n;
+        if(nbSN_tmp.fits_sint_p()) {
+            nbVerticesNauty += this->n;//Add the regular vertices
+        }
+        else
+        {
+            throw Exception("ERROR: nbVerticesNauty is too large!");
+        }
+        
+        m=(nbVerticesNauty + WORDSIZE - 1)/WORDSIZE;
+        
+        /* If we find a strictly positive value in the incidence matrix, then we add an arrow in our graph */
+        for(i=0;i<nbVerticesNauty;i++)
+        {
+            gv=GRAPHROW(nautyG,i,m);
+            EMPTYSET(gv,m);
+        }
+        for(i=0;i<nbVerticesNauty;i++)
+        {
+            lab1[i]=i;
+            ptn[i]=1;
+        }
+        ptn[n-1]=0;//The end of regular vertices
+        
+        
+        for(i=0;i<this->getN();i++)
+        {
+            /* False edges are added between layer 0 and layer 1 */
+            for(j=0;j<this->getN();j++)
+            {
+                /* (1,1) */
+                if(this->getM(i,j) <= 0) { continue;}
+                if(this->getM(i,j)==1 && this->getM(j,i)==-1)
+                {
+                    gv=GRAPHROW(nautyG,i,m);
+                    ADDELEMENT(gv,j);
+                }
+                else
+                {
+                    gv=GRAPHROW(nautyG,i,m);
+                    nbSN_tmp = multiplicities_index[std::make_pair(this->getM(i,j), -this->getM(j,i))] + this->n;
+                    if(nbSN_tmp.fits_sint_p()) {
+                        ADDELEMENT(gv,nbSN_tmp.get_si());
+                    }
+                    else
+                    {
+                        throw Exception("ERROR: nbVerticesNauty is too large!");
+                    }
+                    gv=GRAPHROW(nautyG,nbSN_tmp.get_si(),m);
+                    ADDELEMENT(gv,j);
+                    multiplicities_index[std::make_pair(this->getM(i,j), -this->getM(j,i))]++;
+                }
+            }
+        }
+        options.getcanon = TRUE;
+        options.digraph = TRUE;
+        options.defaultptn = FALSE;
+        options.invarproc = adjacencies;
+        options.mininvarlevel = 0;
+        options.maxinvarlevel = 99;
+        nauty_check(WORDSIZE,m,nbVerticesNauty,NAUTYVERSIONID);
+        for(mul_it=valuedArrowMultiplicities.begin();mul_it!=valuedArrowMultiplicities.end();mul_it++)
+        {
+            nbSN_tmp = n-1+multiplicities_index[mul_it->first];//Now we are actually at the last one
+            if(nbSN_tmp.fits_sint_p()) {
+                ptn[nbSN_tmp.get_si()] = 0;
+            }
+            else
+            {
+                throw Exception("ERROR: nbVerticesNauty is too large!");
+            }
+        }
+        
+        
+        
+        nauty(nautyG,lab1,ptn,NULL,orbits,&options,&stats,
+              workspace,5*MAXM,m,nbVerticesNauty,nautyGC);
+        this->graphIsUpToDate=true;
+    }
+}
+
+
 /* This function tests two Quiver properties:
  *
  * - If the quiver has at least 2 vertices and a (i,j)-arrow with either i or j then the quiver is not of finite mutation type (Case 0)
@@ -994,11 +1142,22 @@ bool Quiver::infinite()
 
 
 //IF the Nauty graph is not up to date then generate it and return the canonical one (i.e. something probably already in the list).
-graph *Quiver::getNautyGraph()
+graph *Quiver::oldGetNautyGraph()
 {
     if(!this->graphIsUpToDate)
     {
         this->genGraph();
+        this->graphIsUpToDate = 1;
+    }
+    return  (graph *)&nautyGC;
+}
+
+//IF the Nauty graph is not up to date then generate it and return the canonical one (i.e. something probably already in the list).
+graph *Quiver::getNautyGraph()
+{
+    if(!this->graphIsUpToDate)
+    {
+        this->newGenGraph();
         this->graphIsUpToDate = 1;
     }
     return  (graph *)&nautyGC;
@@ -1021,8 +1180,8 @@ void Quiver::printMutations()
     }
 }
 
-/* Calcule le "score" d'un quiver, utile pour sortir un "bon" représentant
- * du groupe de mutation
+/* Calculates the "score" of a quiver, useful for obtaining a "good" representative
+ * of the mutation class
  */
 void Quiver::genScore()
 {
@@ -1051,6 +1210,7 @@ void Quiver::genScore()
 /* Effectue mutations mutations et regarde si le degré des arcs explose
  * 
  */
+//Yet another function that needs to be either deleted or modified
 bool Quiver::testInfiniEmpirique(int mutations)
 {
     int i;
@@ -1071,25 +1231,25 @@ bool Quiver::testInfiniEmpirique(int mutations)
 void Quiver::toFile(const char* filename)
 {
     int i,j;
-    std::ofstream fichierSortie(filename);
-    if(!fichierSortie)
+    std::ofstream outputFile(filename);
+    if(!outputFile)
         throw Exception("ERROR: cannot open output file !");
-    fichierSortie << "[";
+    outputFile << "[";
     for(i=0;i<this->getN();i++)
     {
-        fichierSortie << "[";
+        outputFile << "[";
         for(j=0;j<this->getN();j++)
         {
-            fichierSortie << this->M[i][j];
+            outputFile << this->M[i][j];
             if(j!=this->getN() - 1)
-                fichierSortie << ",";
+                outputFile << ",";
         }
-        fichierSortie << "]"  ;
+        outputFile << "]"  ;
         if(i!=this->getN()-1)
-            fichierSortie << "," << std::endl;
+            outputFile << "," << std::endl;
     }
-    fichierSortie << "]" << std::endl;
-    fichierSortie.close();
+    outputFile << "]" << std::endl;
+    outputFile.close();
 }
 
 //Get the mutation sequence as a string
@@ -1203,21 +1363,21 @@ int Quiver::isConnected()
  */
 /* Is vertex incident to some double edge?
  TODO: This method needs to be modified for valued quivers.*/
-bool Quiver::aUneDouble(int vertex)
+bool Quiver::isIncidentToDoubleEdges(int vertex)
 {
     int i;
     if(vertex < n && vertex >= 0)
     {
         for(i=0;i<n;i++)
         {
-            if(M[i][vertex] == 2 || M[i][vertex] == -2)
+            if((M[i][vertex] == 2 && M[vertex][i] == -2) || (M[i][vertex] == -2 && M[vertex][i] == 2))
                 return true;
         }
         return false;
     }
     else
     {
-        throw new Exception("aUneDouble: the argument is not a vertex");
+        throw new Exception("isIncidentToDoubleEdges: the argument is not a vertex");
     }
 }
 
@@ -1318,104 +1478,148 @@ std::vector<int> Quiver::getNeighbours(int vertex)
     return neighbours;
 }
 
-//get all neighbors with a (k,2) edge.
-std::vector<int> Quiver::getNeighboursDoubles(int vertex)
+/* None of the functions below has ever been used anywhere in the program.
+ */
+
+//Is the valued quiver actually simply laced?
+bool Quiver::isSimplyLaced() {
+    int i, j;
+    for(i=0;i<n;i++)
+    {
+        for(j=i;j<n;j++) {
+            if(M[i][j] + M[j][i] != 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+//get all neighbors with at least one (2,2) edge.
+//Never used
+std::vector<int> Quiver::getDoubleNeighbours(int vertex)
 {
     std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][vertex] == 2 || M[i][vertex] == -2)
+        if((M[i][vertex] == 2 && M[vertex][i] == -2) || (M[i][vertex] == -2 && M[vertex][i] == 2))
             neighbours.push_back(i);
     }
     return neighbours;
 }
 
-//get all neighbors with a (k,1) edge.
-std::vector<int> Quiver::getNeighboursSimples(int vertex)
+//get all neighbors with an (1,1) edge.
+//Never used
+std::vector<int> Quiver::getSimpleNeighbours(int vertex)
 {
     std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][vertex] == 1 || M[i][vertex] == -1)
+        if((M[i][vertex] == 1 && M[vertex][i] == -1) || (M[i][vertex] == -1 && M[vertex][i] == 1))
             neighbours.push_back(i);
     }
     return neighbours;
 }
 
-//get all predecessors with a (k,1) edge
-std::vector<int> Quiver::getNeighboursSimplesPredecesseurs(int vertex)
+//get all sources of (1,1) edges towards vertex
+//Never used
+std::vector<int> Quiver::getSimpleSources(int vertex)
 {
     std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][vertex] == -1)
+        if(M[i][vertex] == 1 && M[vertex][i] == -1)
             neighbours.push_back(i);
     }
     return neighbours;
 }
 
-//get all sucessors with a (k,1) edge
-std::vector<int> Quiver::getNeighboursSimplesSuccesseurs(int vertex)
+//get all sinks of (1,1) edges from vertex
+//Never used
+std::vector<int> Quiver::getSimpleSinks(int vertex)
 {
     std::vector<int> neighbours;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][vertex] == 1)
+        if(M[i][vertex] == -1 && M[vertex][i] == 1)
             neighbours.push_back(i);
     }
     return neighbours;
 }
 
-//count the number of (k,1) predecessors
-int Quiver::getNbNeighboursSimplesPredecesseurs(int vertex)
+//count the number of sources of (1,1) edges towards vertex
+//Never used
+int Quiver::getNbSimpleSources(int vertex)
 {
     int neighbours=0;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][vertex] == -1)
+        if(M[i][vertex] == 1 && M[vertex][i] == -1)
             neighbours++;
     }
     return neighbours;
 }
 
-//count the number of (k,1) successors
-int Quiver::getNbNeighboursSimplesSuccesseurs(int vertex)
+//count the number of sinks of (1,1) edges from vertex
+//Never used
+int Quiver::getNbSimpleSinks(int vertex)
 {
     int neighbours=0;
     int i;
     for(i=0;i<n;i++)
     {
-        if(M[i][vertex] == 1)
+        if(M[i][vertex] == -1 && M[vertex][i] == 1)
             neighbours++;
     }
     return neighbours;
 }
 
-//get all sinks of (k,2) arrows
-std::vector<int> Quiver::getVertexsDoubleEdgeEntrante()
+//get all sources of arrows of infinite type
+std::vector<int> Quiver::getInfiniteTypeArrowSources()
 {
     std::vector<int> res;
     int i,j;
     for(i=0;i<n;i++)
     {
-        for(j=0;j<n;j++)
+        for(j=i;j<n;j++)
         {
-            if(M[i][j]==2)
+            if(M[i][j] * M[j][i] <= -4 && M[i][j]>0)
             {
-                res.push_back(j);
+                res.push_back(i);
                 break;
             }    
         }
     }
     return res;
 }
-//get all vertices incident to (k,2) arrows
-std::vector<int> Quiver::getVertexsPasDDoubleEdge()
+
+//get all sinks of arrows of infinite type
+std::vector<int> Quiver::getInfiniteTypeArrowSinks()
+{
+    std::vector<int> res;
+    int i,j;
+    for(i=0;i<n;i++)
+    {
+        for(j=i;j<n;j++)
+        {
+            if(M[i][j] * M[j][i] <= -4 && M[i][j]>0)
+            {
+                res.push_back(j);
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+//get all vertices incident to arrows of infinite type
+//The algorithm needs to be improved
+std::vector<int> Quiver::getVerticesWithInfiniteTypeArrows()
 {
     std::vector<int> res;
     int i,j;
@@ -1423,7 +1627,7 @@ std::vector<int> Quiver::getVertexsPasDDoubleEdge()
     {
         for(j=0;j<n;j++)
         {
-            if(M[i][j]==2 || M[i][j] == -2)
+            if(M[i][j] * M[j][i] <= -4)
             {
                 break;
             }    

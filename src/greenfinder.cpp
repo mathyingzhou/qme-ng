@@ -28,7 +28,7 @@
 GreenFinder::GreenFinder(IceQuiver pe, mpz_class p=0, int min_depth=0, int max_depth=-1)
 {
     depart = new IceQuiver(pe);
-    this->p = p;
+    //this->p = p;
     this->min_depth = min_depth;
     this->max_depth = max_depth;
     srand(time(NULL));
@@ -65,7 +65,7 @@ void GreenFinder::find(uint64_t tries)
                 cutMax++;
                 break;
             }
-            ret = pe->mutate(vertex, this->p);
+            ret = pe->mutate(vertex);
             if (ret == 0) {
                 // if mutate returned 0, then infinity was detected
                 cutInf++;

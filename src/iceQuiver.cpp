@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2011-2012, Grégoire Dupont, Matthieu Pérotin
+ *               2018, Ying Zhou
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +40,8 @@ IceQuiver::IceQuiver(const IceQuiver &ca)
                 M[i*n+j]=mpz_class(ca.M[i*n+j]);
     }
     mutationString = ca.mutationString;
-    this->greenVertices = ca.greenVertices;    
+    this->greenVertices = ca.greenVertices;
+    this->bannedVertices = ca.bannedVertices;
     this->graphIsUpToDate = ca.graphIsUpToDate;
     multiplicity=ca.multiplicity;
     if(ca.graphIsUpToDate)
@@ -63,7 +65,7 @@ IceQuiver::IceQuiver(Quiver c)
         {
                 M[i*n+j]=mpz_class(c.getM(i,j));
         }
-        M[i*n+i+n/2] = mpz_class(1);
+        M[i*n+i+n/2] = mpz_class(1);//Let's use the Igusa-Todorov convention on what "green" means.
         M[(i+n/2)*n+i] = mpz_class(-1);
     }
     this->graphIsUpToDate = false;
@@ -148,12 +150,14 @@ IceQuiver::~IceQuiver()
     }
 }
 
+//Generate the graph and the printing output. Destroy everything else
 void IceQuiver::semiDestroy()
 {
     delete[] this->M;
     this->genGraph();
     multiplicity.clear();
     greenVertices.clear();
+    bannedVertices.clear();
     mutationString = this->mutationsToString();
     mutations.clear();
     semiFreed = true;
@@ -168,7 +172,7 @@ PréCondition: k est un vertex du graphe (=> k>=0 et k<n)
 PostCondition: La fonction \mu_k est appliquée au quiver
 */
 
-int IceQuiver::mutate(int k, mpz_class p)
+int IceQuiver::mutate(int k)
 {
     int i,j;
     int lastMutatedVertex;
@@ -194,10 +198,10 @@ int IceQuiver::mutate(int k, mpz_class p)
         M[k*n+i]=-M[k*n+i];
     }
 
-    if(p != 0 && this->infinite(p)) {
+    //if(p != 0 && this->infinite(p)) {
         //throw Exception("The mutation class is infinite ! " + getMutations());
-        return 0;
-    }
+        //return 0;
+    //}
 
     /*
         On met à jour les mutations qui ont été appliquées sur le quiver
@@ -235,8 +239,8 @@ int IceQuiver::mutate(int k, mpz_class p)
     this->generateGreenVertices();
     this->graphIsUpToDate = false;
     mutationString = "";
-    if(greenVertices.size() == 0) { return 1;}
-    else { return 2;}    
+    if(greenVertices.size() == 0) { return 1;}//1 = maximal green tail
+    else { return 2;} //No MGT yet
 }
 
 void IceQuiver::setM(int i, int j, mpz_class val)
@@ -251,7 +255,7 @@ void IceQuiver::setM(int i, int j, mpz_class val)
     
 }
 
-
+//This method is going to be deleted because it is completely absurd.
 bool IceQuiver::infinite(mpz_class p)
 {
     int i,j;
@@ -273,8 +277,55 @@ bool IceQuiver::infinite(mpz_class p)
     return false;
 }
 
+//The Brustle-Hermes-Igusa-Todorov test
+bool IceQuiver::isSinkOfInfiniteTypeArrow(int k) {
+    int i;
+    int quiverSize = n/2;
+    for(i=0;i<quiverSize;i++)
+    {
+        if(M[k*n+i] < 0 && M[i*n+k] * M[k*n+i] < -3)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
+//The Brustle-Hermes-Igusa-Todorov test
+bool IceQuiver::isSourceOfInfiniteTypeArrow(int k) {
+    int i;
+    int quiverSize = n/2;
+    for(i=0;i<quiverSize;i++)
+    {
+        if(M[k*n+i] > 0 && M[i*n+k] * M[k*n+i] < -3)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
+//No sources of arrows of infinite type may be mutated in a maximal green sequence
+void IceQuiver::generateBannedVertices() {
+    int i,j,c;
+    bannedVertices.clear();
+    for(i=0;i<n/2;i++)
+    {
+        c=0;
+        for(j=0;j<n/2;j++)
+        {
+            if(M[i*n+j] > 0 && M[i*n+j] * M[j*n+i] < -3) {
+                c = 1;
+                break;
+            }
+        }
+        if(c == 0) {
+            bannedVertices.push_back(i);
+        }
+    }
+}
+
+//If s is 0 print the mutation string. Otherwise print the length of the mutation sequence (no mutations = 0)
 void IceQuiver::printMutations(int s)
 {
     std::vector<int>::iterator i;
@@ -289,6 +340,8 @@ void IceQuiver::printMutations(int s)
     }
 }
 
+//If s is 0 print the mutation string. Otherwise print the length of the mutation sequence(no mutations = 0)
+//There is only difference between this method and the method above, namely whether to print an empty mutation sequence at all.
 void IceQuiver::printMutationsE(int s)
 {
     std::vector<int>::iterator i;
@@ -374,11 +427,7 @@ Quiver *IceQuiver::getQuiver(void)
 }
 
 /*
-But: Afficher la matrix d'incidence sur la sortie standard
-Entrée: Néant
-Sortie: Néant
-Précondition: Néant
-PostCondition: La matrix d'incidence est affichée sur la sortie standard
+Print the extended exchange matrix.
 */
 void IceQuiver::print()
 {
@@ -521,7 +570,7 @@ void IceQuiver::genGraph()
 }
 
 
-graph *IceQuiver::getNautyGraph()
+graph *IceQuiver::oldGetNautyGraph()
 {
    // Quiver *quiver=NULL;
    // graph *g;
@@ -548,7 +597,7 @@ std::string IceQuiver::mutationsToString()
     }
     return ss.str(); 
 }
-
+//Add multiplicity maps of *this and p considering the maps to be from uint64_t to Z with values at all the numbers that aren't mentioned 0.
 void IceQuiver::addMultiplicity(IceQuiver &p)
 {
     std::map<uint64_t,mpz_class> *mul = p.getMultiplicityMap();
@@ -558,7 +607,8 @@ void IceQuiver::addMultiplicity(IceQuiver &p)
         this->multiplicity[it->first] += it->second;
     }    
 }
-
+//I'm not sure what shift/unshiftMultiplicities are actually good for.
+//Use g(x) = f(x-1)
 void IceQuiver::shiftMultiplicities()
 {
     std::map<uint64_t,mpz_class>::reverse_iterator rit;
@@ -569,7 +619,7 @@ void IceQuiver::shiftMultiplicities()
     }
     multiplicity = nm;
 }
-
+//Use g(x) = f(x+1)
 void IceQuiver::unshiftMultiplicities()
 {
     std::map<uint64_t,mpz_class>::reverse_iterator rit;
@@ -585,23 +635,23 @@ void IceQuiver::toFile(const char* filename)
 {
     int i,j;
     int n = this->getN();
-    std::ofstream fichierSortie(filename);
-    if(!fichierSortie)
+    std::ofstream outputFile(filename);
+    if(!outputFile)
         throw Exception("ERROR: cannot open output file !");
-    fichierSortie << "[";
+    outputFile << "[";
     for(i=0;i<n;i++)
     {
-        fichierSortie << "[";
+        outputFile << "[";
         for(j=0;j<n;j++)
         {
-            fichierSortie << this->M[i*n+j];
+            outputFile << this->M[i*n+j];
             if(j!=n - 1)
-                fichierSortie << ",";
+                outputFile << ",";
         }
-        fichierSortie << "]"  ;
+        outputFile << "]"  ;
         if(i!=n -1)
-            fichierSortie << "," << std::endl;
+            outputFile << "," << std::endl;
     }
-    fichierSortie << "]" << std::endl;
-    fichierSortie.close();
+    outputFile << "]" << std::endl;
+    outputFile.close();
 }

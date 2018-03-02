@@ -38,7 +38,7 @@ GreenExplorator::GreenExplorator()
 GreenExplorator::~GreenExplorator()
 {
 }
-void GreenExplorator::printArbre()
+void GreenExplorator::printTree()
 {
     std::list<IceQuiver>::iterator i;
     int j=0;
@@ -82,15 +82,15 @@ int GreenExplorator::generateMutations(IceQuiver &pe)
         return 1;
     }
     if(p.getMutationsSize() >= this->max_depth) {
-        return 4;
+        return 4;//Cut the sequence
     }
-    ret = p.mutate(vertex, this->p);
+    ret = p.mutate(vertex);
     if (ret == 0) {
         // if mutate returned 0, then infinity was detected
         return 3;
     }
     if (ret == 1) {
-        // a Green quiver was detected !
+        //A maximal green sequence/tail was detected!
         size = p.getMutationsSize();
         mult = p.getMultiplicityMap();
         for(mult_it = mult->begin(); mult_it!=mult->end(); mult_it++) { 
@@ -386,8 +386,8 @@ bool GreenExplorator::myIsomorphismNauty(IceQuiver &a, IceQuiver &b)
     // These two calls must be placed before hand
     // They are responsible for initializing all the other variables of
     // objects (nbVertexsNauty, multiplicities...)
-    c2 = (graph *)a.getNautyGraph();
-    c1 = (graph *)b.getNautyGraph();
+    c2 = (graph *)a.oldGetNautyGraph();
+    c1 = (graph *)b.oldGetNautyGraph();
 
     // This is very different from the number of vertices
     // This is the number of vertices in the nauty graph

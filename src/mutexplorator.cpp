@@ -31,7 +31,7 @@ MutExplorator::MutExplorator()
 MutExplorator::~MutExplorator()
 {
 }
-void MutExplorator::printArbre()
+void MutExplorator::printTree()
 {
 	std::vector<Quiver>::iterator i;
 	int j=0;
@@ -124,7 +124,7 @@ void MutExplorator::insertInList(Quiver *quiver)
 		i=c.begin();
 		if(myIsomorphismNauty(quiver,&(*i)))
 		{
-			std::cout << "Le quiver appartient à la classe de mutation !";
+			std::cout << "The quiver belongs to the mutation class!";
 			std::cout << "\t Mutations:";
 			quiver->printMutations();
 			throw Exception("Done.");
@@ -170,8 +170,8 @@ bool MutExplorator::myIsomorphismNauty(Quiver *a, Quiver *b)
 	graph *c1;
 	graph *c2;
 
-	c1 = (graph *)b->getNautyGraph();
-	c2 = (graph *)a->getNautyGraph();
+	c1 = (graph *)b->oldGetNautyGraph();
+	c2 = (graph *)a->oldGetNautyGraph();
 	for(i=0;i<2*n;i++)
 	{
 		if(c1[i] !=c2[i])
@@ -192,7 +192,7 @@ bool MutExplorator::isInC(Quiver *quiver)
 	quiver->genGraph();
 	for(ri=c.rbegin();ri!=c.rend();ri++)
 	{
-		if(!ri->graphIsAJour())
+		if(!ri->isGraphUpToDate())
 			ri->genGraph();
 		if(ri->getN()!=quiver->getN())
 			break;
