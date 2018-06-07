@@ -51,7 +51,7 @@ void GreenFinder::find(uint64_t tries)
                   << " (" << round((totalTries-tries)*10000.0/totalTries)/100
                   << "%)" << std::flush;
         while(true) {
-            vertex = pe->getRandomGreenVertex();
+            vertex = pe->getRandomFiniteGreenVertex();
             if(vertex == -1) {
                 cutNoMore++;
                 break;

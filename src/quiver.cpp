@@ -668,6 +668,7 @@ Quiver::Quiver(int type, int nbVertices, std::string orientation)
 
 }
 //Import quivers from files, both .qmu files and other files.
+//Note that at the end of a non-qmu file a new line is needed.
 Quiver::Quiver(const char *file)
 {
     std::string contents,line;
@@ -694,8 +695,8 @@ Quiver::Quiver(const char *file)
     
     while(!f.eof())
     {
-        
         contents+=line;
+        contents+=" ";
         std::getline(f,line);
         // Keller's new file format ends matrix definition by "Traffic lights"
         // the old file format ends it with "Points"
@@ -704,7 +705,6 @@ Quiver::Quiver(const char *file)
         {
             break;
         }
-        
     }
     tokenizer tokens(contents, sep);
     for (tokenizer::iterator tok_iter = tokens.begin();
@@ -835,8 +835,8 @@ void Quiver::mutate(int k)
         M[k][i]=-M[k][i];
     }
     //If the exchange matrix is of infinite type then print an exception and getMutations().
-    if(this->infinite())
-        throw Exception("Mutation class is infinite ! " + getMutations());
+    //if(this->infinite())
+        //throw Exception("Mutation class is infinite ! " + getMutations());
     //Set graphIsUpToDate to 0.
     if(this->graphIsUpToDate)
     {

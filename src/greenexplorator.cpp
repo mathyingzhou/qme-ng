@@ -70,11 +70,11 @@ int GreenExplorator::generateMutations(IceQuiver &pe)
     std::map<uint64_t,mpz_class>::iterator mult_it;
     std::map<uint64_t,mpz_class> *mult;
     #ifdef DEBUG
-    std::cout << "Working on "; pe.printMutationsE(0);
+    std::cout << "genMut: Working on "; pe.printMutationsE(0);
     #endif
-    vertex = pe.getNextGreenVertex();
+    vertex = pe.getNextFiniteGreenVertex();
     if(vertex == -1) {
-        return 1;
+        return 1;//No more finite green vertex
     }
     if(vertex==p.lastMutation())
     {
@@ -86,15 +86,22 @@ int GreenExplorator::generateMutations(IceQuiver &pe)
     }
     ret = p.mutate(vertex);
     if (ret == 0) {
-        // if mutate returned 0, then infinity was detected
-        return 3;
+        // if mutate returned 0, then non-BHIT violating infinity was detected
+        return 0;
     }
     if (ret == 1) {
-        //A maximal green sequence/tail was detected!
+        //A maximal green sequence/tail was detected or infinity was detected!
         size = p.getMutationsSize();
         mult = p.getMultiplicityMap();
+        #ifdef DEBUG
+        std::cout << "MGS found!" << std::endl;
+        p.printMutationsE(0);
+        #endif
         for(mult_it = mult->begin(); mult_it!=mult->end(); mult_it++) { 
-            sizes[mult_it->first] += mult_it->second;
+            mgsInfo[mult_it->first] += mult_it->second;
+#ifdef DEBUG
+            std::cout << mult_it->first << "," << mult_it->second << std::endl;
+#endif
         }
         if (isomorphTest) {
             mutations_v = p.getMutations();
@@ -102,25 +109,27 @@ int GreenExplorator::generateMutations(IceQuiver &pe)
         }
         if(size > maxLength) { 
             maxLength = size; 
-            std::cerr << "M:";
-            p.printMutationsE(1);
-            std::cerr << "Q:";
-            p.printMutationsE(0);
+           // std::cerr << "M:";
+            //p.printMutationsE(1);
+            //std::cerr << "Q:";
+            //p.printMutationsE(0);
         }
         if(size < minLength) { 
             minLength = size; 
-            std::cerr << "m:";
-            p.printMutationsE(1);
-            std::cerr << "Q:";
-            p.printMutationsE(0);
+            //std::cerr << "m:";
+            //p.printMutationsE(1);
+            //std::cerr << "Q:";
+            //p.printMutationsE(0);
         }
 
         numGreen+=1;
-        if((numGreen % 1000000) == 0) {
+        if((numGreen % 100000) == 0) {
+//#ifdef DEBUG
             std::cerr << "S (" << numGreen << "):";
             p.printMutationsE(0);
+//#endif
         }
-        if(isomorphTest) {insertInList(p,cemetary);}     
+        if(isomorphTest) {insertInCemetary(p,cemetary);}
         return 0;
     }
     if (isomorphTest) {
@@ -151,6 +160,7 @@ int GreenExplorator::insertInList(IceQuiver &pe)
     uint64_t pe_size,n_size;
     std::stringstream ss (std::stringstream::in | std::stringstream::out);
     // ri is an  iterator, it browses the list from the beginning
+    //1.If pe is in c then add the multiplicity of pe to the already existing copy of it (*ri).
     for(ri=c.begin();ri!=c.end();ri++)
     {
         if(this->myIsomorphismNauty(pe,*ri))
@@ -163,11 +173,11 @@ int GreenExplorator::insertInList(IceQuiver &pe)
             #endif
             // This principal extension is still to be considered
             // increase its multiplicity
-            (*ri).addMultiplicity(pe);
+            (*ri).addMultiplicity(pe); //(!!)
             break;
         }
     }
-    if( ri != c.end()) { return 0;}
+    if( ri != c.end()) { return 0;}//No addition in this case. Just change the multiplicity.
     for(rxi=cemetary.rbegin();rxi!=cemetary.rend();rxi++)
     {
         if(this->myIsomorphismNauty(pe,*rxi))
@@ -178,26 +188,30 @@ int GreenExplorator::insertInList(IceQuiver &pe)
                 (*rxi).printMutations(0); 
                 std::cout << "\n";
             #endif
-            // This quiver is isomorph to an already considered
-            // quiver
+            // This quiver is isomorph to a cemetary quiver
 
             mutations_str = (*rxi).getMutationsString();
-            if(gsh.GreenSizesSetSize(mutations_str) != 0) {
-                // The quiver is isomorph to a quiver leading to a green max suite
-                // Update de length list !
+            if(gsh.GreenSizesGetSize(mutations_str) != 0) {
+                //So each mutation sequence that is an initial subsequence of an MGS is stored in gsh? Huh!
+                // The quiver is isomorphic to a quiver leading to an maximal green sequence
+                // Update the length list ! (Huh! What's this for!)
 
                 // 2. For all the quiver sizes attainable with the quiver
                 green_sizes=gsh.getGreenSizes(mutations_str);
                 for(it=green_sizes->begin();it!=green_sizes->end();it++) {
                     // For all the sizes multiplicities
                     mul_map = pe.getMultiplicityMap();
+#ifdef DEBUG
+                    pe.printMultiplicityMap();
+#endif
                     for(it_mul=mul_map->begin();it_mul != mul_map->end();it_mul++) {
                         pe_size=it_mul->first;
-                        n_size=it->first-(*rxi).getMutationsSize()+pe_size;
-                        sizes[n_size]+=pe.getMultiplicity(it_mul->first)* it->second;
+                        n_size=it->first-(*rxi).getMutationsSize()+pe_size;//MGS size
+                        mgsInfo[n_size]+=pe.getMultiplicity(it_mul->first)* it->second;
+                        //it_mul->first is the length of a mutation sequence from B0 to pe. Hence pe.getMultiplicity(it_mul->first) is literally just its corresponding multiplicity.
                         #ifdef DEBUG
-                        std::cout << "Add size: " <<  n_size << 
-                                     " Mul " << "("<<pe.getMultiplicity(it_mul->first) << "*" <<it->second<<") ="
+                        std::cout << "Insert MGS of size: " <<  n_size <<
+                                     " with multiplicity " << "("<<pe.getMultiplicity(it_mul->first) << "*" <<it->second<<") ="
                                              << pe.getMultiplicity(it_mul->first) *it->second 
                                              << std::endl;
                         #endif
@@ -208,7 +222,7 @@ int GreenExplorator::insertInList(IceQuiver &pe)
                 
                 // 3. Update the quiver list
                 mutations_v = pe.getMutations();
-                gsh.addSizes(mutations_v,tmp);
+                gsh.addSizes(mutations_v,tmp);//new mutation sequence and (n_size, it->second) pair
             }
             break;
             
@@ -216,11 +230,12 @@ int GreenExplorator::insertInList(IceQuiver &pe)
     }
     // if ri went all the way through the end, then the quiver is not
     // ismomorph to any quiver in already in the list, so we add it
+    //4.Add it if it is not in the cemetary.
     if(rxi==cemetary.rend())
     {
         c.push_back(pe);
         #ifdef DEBUG
-            std::cout << "Adding";
+        std::cout << "InsertInList: Adding mutation sequence ";
             pe.printMutations(0);
         #endif
         // Insertion done, return 2;
@@ -231,19 +246,23 @@ int GreenExplorator::insertInList(IceQuiver &pe)
     return 0;
 }
 
-int GreenExplorator::insertInList(IceQuiver &pe, std::list<IceQuiver> &c)
+//Insert a quiver into the cemetary (i.e. list of explored quivers) if it is not already there.
+int GreenExplorator::insertInCemetary(IceQuiver &pe, std::list<IceQuiver> &cem)
 {
     std::list<IceQuiver>::iterator ri; 
     std::list<IceQuiver>::reverse_iterator rxi;
+#ifdef DEBUG
+    fprintf(stderr,"insertInCemetary\n");
+#endif
 
     // ri is an  iterator, it browses the list from the beginning
-    for(ri=c.begin();ri!=c.end();ri++)
+    for(ri=cem.begin();ri!=cem.end();ri++)
     {
         if(this->myIsomorphismNauty(pe,*ri))
         {
             #ifdef DEBUG
                 pe.printMutations(0); 
-                std::cout << "Is isomorphic to  ";//est isomorphe cim à
+                std::cout << "is isomorphic to  ";
                 (*ri).printMutations(0); 
                 std::cout << "\n";
             #endif
@@ -252,13 +271,13 @@ int GreenExplorator::insertInList(IceQuiver &pe, std::list<IceQuiver> &c)
         }
     }
     // if ri went all the way through the end, then the quiver is not
-    // ismomorph to any quiver in already in the list, so we add it
-    if(ri==c.end())
+    // ismomorphic to any quiver in already in the cemetary, so we add it
+    if(ri==cem.end())
     {
         pe.semiDestroy();
-        c.push_back(pe);
+        cem.push_back(pe);
         #ifdef DEBUG
-            std::cout << "Adding (C)";
+        std::cout << "Adding to cemetary: ";
             pe.printMutations(0);
         #endif
         // Insertion done, return 2;
@@ -276,31 +295,84 @@ void GreenExplorator::greenExploration(IceQuiver pe)
     std::map<uint64_t,mpz_class>::iterator it;
     mpz_class total=0;
     std::list<IceQuiver>::iterator pei;
+    std::list<IceQuiver>::iterator peitest;
     std::stringstream ss (std::stringstream::in | std::stringstream::out);
     std::string filename;
     uint64_t cutPending = 0;
     // Initial population of the list
     insertInList(pe);
+    if (pe.getN() == 2) {//When n=1
+        std::cout << 1 << "\t=>\t" << 1 << std::endl;
+        std::cout << "Total: " << 1 << std::endl;
+        return;
+    }
     pei = c.begin();
-    while(generateMutations(*pei) != 1) {pei=c.begin();};
+//#ifdef DEBUG
+ //   for(peitest = c.begin();peitest != c.end();peitest++) {
+   //     fprintf(stderr, "Now printing all mutation sequences in the list c.\n");
+     //   peitest->printMutationsE(0);
+    //}
+//#endif
+    while(generateMutations(*pei) != 1){
+        //The purpose of this loop is to completely exhaust all initial green sequences starting from a quiver
+        //Then it can be removed from the list of to-be-determined quivers.
+#ifdef DEBUG
+        fprintf(stderr, "Now pei points to ");
+        pei->printMutationsE(0);
+#endif
+        pei=c.begin();
+#ifdef DEBUG
+        fprintf(stderr, "Now printing all mutation sequences in the list c.\n");
+        for(peitest = c.begin();peitest != c.end();peitest++) {
+            peitest->printMutationsE(0);
+        }
+#endif
+    };
+//#ifdef DEBUG
+  //  fprintf(stderr, "Now this weird process is finally over.\nNow pei points to ");
+    //pei->printMutationsE(0);
+    //fprintf(stderr, "Now printing all mutation sequences in the list c.\n");
+    //for(peitest = c.begin();peitest != c.end();peitest++) {
+      //  peitest->printMutationsE(0);
+    //}
+//#endif
     if (isomorphTest) {
-        insertInList(*pei,cemetary);
+        insertInCemetary(*pei,cemetary);
     }
     c.erase(pei);
     pei = c.begin();
     for(index=c.size();index>=1;index--) {
-        while(generateMutations(*pei) != 1) {pei=c.begin();};
+        while(generateMutations(*pei) != 1){
+            pei=c.begin();
+//#ifdef DEBUG
+  //          fprintf(stderr, "Now pei points to ");
+    //        pei->printMutationsE(0);
+      //      fprintf(stderr, "Now printing all mutation sequences in the list c.\n");
+        //    for(peitest = c.begin();peitest != c.end();peitest++) {
+         //       peitest->printMutationsE(0);
+          //  }
+//#endif
+        };
         if (isomorphTest) {
-            insertInList(*pei,cemetary);
+            insertInCemetary(*pei,cemetary);
         }
         c.erase(pei);
         pei = c.begin();
+//#ifdef DEBUG
+  //      fprintf(stderr, "Now pei points to ");
+    //    pei->printMutationsE(0);
+      //  fprintf(stderr, "Now printing all mutation sequences in the list c.\n");
+        //for(peitest = c.begin();peitest != c.end();peitest++) {
+          //  peitest->printMutationsE(0);
+  //      }
+//#endif
     }
-    pei=c.end();pei--;
+    pei=c.end();
+    pei--;
     // Main loop
     while(c.size()!=0) {
     #ifdef DEBUG
-    std::cout << "C.size: " << c.size() << " Cem.size: " << cemetary.size() << "\t\t";
+    std::cout << "C.size: " << c.size() << " Cemetary.size: " << cemetary.size() << "\t\t";
     std::cout << "Working on "; (*pei).printMutations(0);
     (*pei).print();
     #endif
@@ -327,6 +399,8 @@ void GreenExplorator::greenExploration(IceQuiver pe)
                 }
                 if(ret == 4) {
                     this->truncated = 1;
+                    std::cout << "Cut sequence: " << std::endl;
+                    pei->printMutationsE(0);
                     depthCut ++;
                 }
                 if(isomorphTest) {
@@ -337,7 +411,7 @@ void GreenExplorator::greenExploration(IceQuiver pe)
                 
             case 1:
                 if (isomorphTest) {
-                    insertInList(*pei,cemetary);
+                    insertInCemetary(*pei,cemetary);
                 }
                 c.erase(pei);
             case 2:
@@ -350,7 +424,7 @@ void GreenExplorator::greenExploration(IceQuiver pe)
         }
     }
     // Print results
-    for ( it=sizes.begin() ; it != sizes.end(); it++ ) {
+    for ( it=mgsInfo.begin() ; it != mgsInfo.end(); it++ ) {
         std::cout << (*it).first << "\t=>\t" << (*it).second << std::endl;
         total +=(*it).second;
     }
@@ -359,14 +433,14 @@ void GreenExplorator::greenExploration(IceQuiver pe)
         std::cout << "Exploration Truncated at depth: " << max_depth << std::endl;
     }
     if(this->infCut > 0) {
-        std::cout << "Num branches cut because of excessive Mul: " << infCut << std::endl;
+        std::cout << "Num branches cut because of BHIT violations: " << infCut << std::endl;
     }
     if(this->depthCut > 0) {
         std::cout << "Num branches cut because of excessive depth: " << depthCut << std::endl;
     }
     if(cutPending > 0) {
         std::cout << "WARNING: "<< cutPending << " branches were cut with pending isomorphs." << std::endl;
-        std::cout << "All max green suite < "<< max_depth << " may not have been found." << std::endl;
+        std::cout << "All max green sequences < "<< max_depth << " may not have been found." << std::endl;
     }
 }
 

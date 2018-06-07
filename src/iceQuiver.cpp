@@ -41,7 +41,7 @@ IceQuiver::IceQuiver(const IceQuiver &ca)
     }
     mutationString = ca.mutationString;
     this->greenVertices = ca.greenVertices;
-    this->bannedVertices = ca.bannedVertices;
+    this->finiteGreenVertices = ca.finiteGreenVertices;
     this->graphIsUpToDate = ca.graphIsUpToDate;
     multiplicity=ca.multiplicity;
     if(ca.graphIsUpToDate)
@@ -65,7 +65,7 @@ IceQuiver::IceQuiver(Quiver c)
         {
                 M[i*n+j]=mpz_class(c.getM(i,j));
         }
-        M[i*n+i+n/2] = mpz_class(1);//Let's use the Igusa-Todorov convention on what "green" means.
+        M[i*n+i+n/2] = mpz_class(1);//Let's use the BDP convention on what "green" means.
         M[(i+n/2)*n+i] = mpz_class(-1);
     }
     this->graphIsUpToDate = false;
@@ -157,12 +157,11 @@ void IceQuiver::semiDestroy()
     this->genGraph();
     multiplicity.clear();
     greenVertices.clear();
-    bannedVertices.clear();
+    finiteGreenVertices.clear();
     mutationString = this->mutationsToString();
     mutations.clear();
     semiFreed = true;
 }
-
 
 /*
 But: Appliquer la fonction de mutation sur un vertex du graphe
@@ -218,28 +217,35 @@ int IceQuiver::mutate(int k)
         if(lastMutatedVertex == k)
         {
             mutations.pop_back();
-            this->unshiftMultiplicities();
+            this->unshiftMultiplicity();
             mutationsSize--;
 
         }
         else
         {
             mutations.push_back(k);
-            this->shiftMultiplicities();
+            this->shiftMultiplicity();
             mutationsSize++;
         }
     }
     else
     {
         mutations.push_back(k);
-        this->shiftMultiplicities();
+        this->shiftMultiplicity();
         mutationsSize++;
     }
-    greenVertices.clear();
     this->generateGreenVertices();
+    this->generateFiniteGreenVertices();
     this->graphIsUpToDate = false;
     mutationString = "";
     if(greenVertices.size() == 0) { return 1;}//1 = maximal green tail
+    else if (finiteGreenVertices.size() == 0) {
+#ifdef DEBUG
+        std::cout << "Inf cut!" << std::endl;
+        printMutationsE(0);
+#endif
+        return 0;
+    }//0 = Banned vertices (BHIT & generalizations)
     else { return 2;} //No MGT yet
 }
 
@@ -305,26 +311,6 @@ bool IceQuiver::isSourceOfInfiniteTypeArrow(int k) {
     return false;
 }
 
-//No sources of arrows of infinite type may be mutated in a maximal green sequence
-void IceQuiver::generateBannedVertices() {
-    int i,j,c;
-    bannedVertices.clear();
-    for(i=0;i<n/2;i++)
-    {
-        c=0;
-        for(j=0;j<n/2;j++)
-        {
-            if(M[i*n+j] > 0 && M[i*n+j] * M[j*n+i] < -3) {
-                c = 1;
-                break;
-            }
-        }
-        if(c == 0) {
-            bannedVertices.push_back(i);
-        }
-    }
-}
-
 //If s is 0 print the mutation string. Otherwise print the length of the mutation sequence (no mutations = 0)
 void IceQuiver::printMutations(int s)
 {
@@ -360,8 +346,6 @@ void IceQuiver::printMutationsE(int s)
     }
 }
 
-
-
 void IceQuiver::generateGreenVertices()
 {
     int i,j,c;
@@ -374,7 +358,7 @@ void IceQuiver::generateGreenVertices()
             if(M[(n/2+j)*n+i] > 0) {
                 c=1;
                 break;
-            }    
+            }
         }
         if(c==0) {
             greenVertices.push_back(i);
@@ -382,41 +366,70 @@ void IceQuiver::generateGreenVertices()
     }
 }
 
+//Actually used green sequences
+void IceQuiver::generateFiniteGreenVertices()
+{
+    int i,j,c;
+    finiteGreenVertices.clear();
+    for(i=0;i<n/2;i++)
+    {
+        c=0;
+        for(j=0;j<n/2;j++)
+        {
+            if(M[(n/2+j)*n+i] > 0 || (M[i*n+j] < 0 && M[i*n+j] * M[j*n+i] < -3)) {
+                c=1;
+                break;
+            }    
+        }
+        if(c==0) {
+            finiteGreenVertices.push_back(i);
+        }
+    }
+#ifdef DEBUG
+    std::vector<int>::iterator it;
+    std::cout << "genFinGrV: Available finite green vertices: ";
+    for(it=finiteGreenVertices.begin();it!=finiteGreenVertices.end();it++) { std::cout << (*it + 1) << ",";}
+    std::cout << std::endl;
+#endif
+}
+
 void IceQuiver::forceGreenVertex(int s)
 {
     greenVertices.push_back(s);
 }
 
-
-int IceQuiver::getNextGreenVertex()
+//Get the last (WTF?) finite green vertex and remove it from the list of finite green vertices
+int IceQuiver::getNextFiniteGreenVertex()
 {
     int ret;
-    if(greenVertices.size() == 0) { return -1;}
+    if(finiteGreenVertices.size() == 0) { return -1;}
     #ifdef DEBUG
         std::vector<int>::iterator it;
-        std::cout << "vertexsV: ";
-        for(it=greenVertices.begin();it!=greenVertices.end();it++) { std::cout << (*it) << ",";}
+        std::cout << "Available finite green vertices: ";
+        for(it=finiteGreenVertices.begin();it!=finiteGreenVertices.end();it++) { std::cout << (*it + 1) << ",";}
         std::cout << std::endl;
     #endif
-    ret = greenVertices.back();
-    greenVertices.pop_back();
+    ret = finiteGreenVertices.back();
+    finiteGreenVertices.pop_back();
+    greenVertices.pop_back();//greenVertices is not useful in all senses other than their size.
     return ret;
 }
 
-int IceQuiver::getRandomGreenVertex()
+int IceQuiver::getRandomFiniteGreenVertex()
 {
     int ret;
     int pos;
-    if(greenVertices.size() == 0) { return -1;}
+    if(finiteGreenVertices.size() == 0) { return -1;}
     #ifdef DEBUG
         std::vector<int>::iterator it;
-        std::cout << "vertexsV: ";
-        for(it=greenVertices.begin();it!=greenVertices.end();it++) { std::cout << (*it) << ",";}
+        std::cout << "Available finite green vertices: ";
+        for(it=finiteGreenVertices.begin();it!=finiteGreenVertices.end();it++) { std::cout << (*it) << ",";}
         std::cout << std::endl;
     #endif
-    if(greenVertices.size() == 0) { return -1;}
-    pos = ((double)rand() / RAND_MAX)*(greenVertices.size());
-    ret = greenVertices[pos];
+    if(finiteGreenVertices.size() == 0) { return -1;}
+    pos = ((double)rand() / RAND_MAX)*(finiteGreenVertices.size());
+    ret = finiteGreenVertices[pos];
+    finiteGreenVertices.erase(finiteGreenVertices.begin()+pos);
     greenVertices.erase(greenVertices.begin()+pos);
     return ret;
 }
@@ -607,9 +620,9 @@ void IceQuiver::addMultiplicity(IceQuiver &p)
         this->multiplicity[it->first] += it->second;
     }    
 }
-//I'm not sure what shift/unshiftMultiplicities are actually good for.
+//I'm not sure what shift/unshiftMultiplicity are actually good for.
 //Use g(x) = f(x-1)
-void IceQuiver::shiftMultiplicities()
+void IceQuiver::shiftMultiplicity()
 {
     std::map<uint64_t,mpz_class>::reverse_iterator rit;
     std::map<uint64_t,mpz_class> nm;
@@ -620,7 +633,7 @@ void IceQuiver::shiftMultiplicities()
     multiplicity = nm;
 }
 //Use g(x) = f(x+1)
-void IceQuiver::unshiftMultiplicities()
+void IceQuiver::unshiftMultiplicity()
 {
     std::map<uint64_t,mpz_class>::reverse_iterator rit;
     std::map<uint64_t,mpz_class> nm;
@@ -654,4 +667,13 @@ void IceQuiver::toFile(const char* filename)
     }
     outputFile << "]" << std::endl;
     outputFile.close();
+}
+
+void IceQuiver::printMultiplicityMap() {
+    std::map<uint64_t,mpz_class>::iterator it;
+    std::cout << "Printing the Multiplicity Map of ";
+    printMutationsE(0);
+    for(it=multiplicity.begin();it!=multiplicity.end();it++) {
+        std::cout << it->first << "," << it->second << std::endl;
+    }
 }

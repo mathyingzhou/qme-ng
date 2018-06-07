@@ -27,6 +27,7 @@
 GreenSizeHash::GreenSizeHash() {}
 GreenSizeHash:: ~GreenSizeHash() {}
 
+//Add (size,1) to the entries with key std::vector<int> &mutations and its initial subsequences and change the multiplicities map accordingly.
 void GreenSizeHash::increment(std::vector<int> &mutations, uint64_t size)
 {
     std::map<uint64_t,mpz_class> temp;
@@ -34,6 +35,7 @@ void GreenSizeHash::increment(std::vector<int> &mutations, uint64_t size)
     addSizes(mutations,temp);
 }
 
+//Add std::map<uint64_t,mpz_class>& sizes to the entries with key std::vector<int> &mutations and its initial subsequences and change the multiplicities map accordingly.
 void GreenSizeHash::addSizes(std::vector<int> &mutations, std::map<uint64_t,mpz_class>& sizes)
 {
     uint64_t i;
@@ -44,18 +46,23 @@ void GreenSizeHash::addSizes(std::vector<int> &mutations, std::map<uint64_t,mpz_
     strhash::iterator strhash_it;
     mul_hash::iterator mul_hash_it;
     std::pair<mul_hash::iterator, bool> ins_it;
+#ifdef DEBUG
+    std::cout << "Before adding sizes" << std::endl;
+    std::cout << "print Green Size:" << std::endl;
+    printGreenSize();
+#endif
     // 1. For each mutation subchain
     for(i=0;i<mutations.size();i++) {
         // Empty the ss object;
         ss.clear();ss.str("");
         ss << mutations_str << mutations[i]+1 << " ";
-        mutations_str = ss.str();
+        mutations_str = ss.str();//Update the mutation string by adding one more mutation (with 1 added)
         // 2. Lookup the mutations_str 
         strhash_it = green_size.find(mutations_str);
         if(strhash_it != green_size.end())
         {
             // The subchain already has a multiplicities list
-            temp = *(strhash_it->second);
+            temp = *(strhash_it->second);//a map
             mul_hash_it = multiplicities.find(temp);
             mul_hash_it->second -= 1;
             if(mul_hash_it->second == 0)
@@ -63,13 +70,16 @@ void GreenSizeHash::addSizes(std::vector<int> &mutations, std::map<uint64_t,mpz_
                 multiplicities.erase(temp);
             }
         }
-        // If the subchain does not already have a multiplicities subchain
-        // We leave temp in an unitialized state
-        // Do the math
+        //Find the corresponding map of the mutation sequence in the existing green_size. If it is found then delete it once from the multiplicities map...aka replacement
+        
+        // If the subchain does not already have a multiplicities subchain then we do nothing
+        
+        // Now, add sizes to the old corresponding map
         for(map_it=sizes.begin();map_it!=sizes.end();map_it++)
         {
             temp[map_it->first]+=map_it->second;
         }
+        //temp is basically defined as
         //3. Lookup the newly created map
         mul_hash_it = multiplicities.find(temp);
         if(mul_hash_it != multiplicities.end())
@@ -89,7 +99,7 @@ void GreenSizeHash::addSizes(std::vector<int> &mutations, std::map<uint64_t,mpz_
         }
         else
         {
-            // The created map does not yes exist !
+            // The created map does not yet exist !
             // a. insert
             ins_it = multiplicities.insert(std::make_pair(temp,1));
             // b. update
@@ -97,9 +107,15 @@ void GreenSizeHash::addSizes(std::vector<int> &mutations, std::map<uint64_t,mpz_
         } 
         temp.clear();
     }
+#ifdef DEBUG
+    std::cout << "After adding sizes" << std::endl;
+    std::cout << "print Green Size:" << std::endl;
+    printGreenSize();
+#endif
 }
 
-uint64_t GreenSizeHash::GreenSizesSetSize(std::string s)
+//Given a modified mutation string produce the cardinality/size of the domain of the corresponding map.
+uint64_t GreenSizeHash::GreenSizesGetSize(std::string s)
 {
     strhash::iterator strhash_it;
     strhash_it = green_size.find(s);
@@ -114,6 +130,8 @@ uint64_t GreenSizeHash::GreenSizesSetSize(std::string s)
 
 }
 
+//Given a modified mutation string and a uint64_t, produce the int associated to it.
+//This is in essence an evaluation of the form green_size(s)(v).
 mpz_class GreenSizeHash::GreenSize(std::string s,uint64_t v)
 {
     strhash::iterator strhash_it;
@@ -128,7 +146,8 @@ mpz_class GreenSizeHash::GreenSize(std::string s,uint64_t v)
     }
 
 }
-        
+
+//Given a map<uint64_t,mpz_class> print the mapped integers. This is also basically evaluation.
 mpz_class GreenSizeHash::MultiplicitiesRefs(std::map<uint64_t,mpz_class> &rmap)
 {
     mul_hash::iterator it;
@@ -143,7 +162,8 @@ mpz_class GreenSizeHash::MultiplicitiesRefs(std::map<uint64_t,mpz_class> &rmap)
     }
 }
 
-void GreenSizeHash::dumpSizeToScreen()
+//print green_size
+void GreenSizeHash::printGreenSize()
 {
     strhash::iterator strhash_it;
     std::map<uint64_t,mpz_class>::iterator map_it;
@@ -163,8 +183,8 @@ void GreenSizeHash::dumpSizeToScreen()
 
 }
 
-
-void GreenSizeHash::dumpMulToScreen()
+//print multiplicities
+void GreenSizeHash::printMultiplicities()
 {
     mul_hash::iterator mul_hash_it;
     std::map<uint64_t,mpz_class>::iterator map_it;
