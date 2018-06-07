@@ -33,6 +33,9 @@
 #include <stdint.h>
 
 void test() {
+    Quiver q(A,3,"");
+    graph* gr = q.oldGetNautyGraph();
+    fprintf(stderr,"WORDSIZE = %d\n",WORDSIZE);
     fprintf(stderr, "qme-ng official testing.\n");
     return;
 }
@@ -78,13 +81,13 @@ int main(int argc, char **argv)
         ("size,s", boost::program_options::value< std::vector<int> >(),"Quiver size (must be used with type)")
         ("orientation,o", boost::program_options::value<std::string>(), "Orientation (a sequence of l and r to denote orientation, if orientation is not given the default orientation will be used, can not be used for E_ELIPTIC or X)")
         ("green,g", "Green exploration")
-        ("one", boost::program_options::value<int>(&random_tries)->default_value(0), "Find one green suite, give number of tries")
+        ("one", boost::program_options::value<int>(&random_tries)->default_value(0), "Find one green sequence, give number of tries")
         //("p", boost::program_options::value<mpz_class>(&p)->default_value(0),"P param")
         ("max_depth", boost::program_options::value<int>(&max_depth)->default_value(INT_MAX),"Max exploration depth")
         ("min_depth", boost::program_options::value<int>(&min_depth)->default_value(0),"Min exploration depth")
         ("no-iso,n", "Isomorph discrimination")
-        ("dump-class,c", boost::program_options::value<std::string>(), "Dump Mutation Class")
-        ("dump-trunk,k", "Dump truncated quivers")
+        ("print-class,c", boost::program_options::value<std::string>(), "Print Mutation Class")
+        ("print-trunk,k", "Print truncated quivers")
         ("test", "Testing")
     ;
     boost::program_options::variables_map vm;
@@ -101,7 +104,7 @@ int main(int argc, char **argv)
     {
         ge.setIsomorphTest(false);
     }
-    if(vm.count("dump-trunk"))
+    if(vm.count("print-trunk"))
     {
         ge.setDumpTruncated(true);
     }
@@ -177,6 +180,7 @@ int main(int argc, char **argv)
         //Print the 2n * 2n exchange matrix of the ice quiver
         pt->print();
         pt->generateGreenVertices();
+        pt->generateFiniteGreenVertices();
         try {
             if(random_tries == 0) {
                 //Get the number of MGS
@@ -204,8 +208,8 @@ int main(int argc, char **argv)
         mutationClassSize = explorator->isomorphismExplorator(*quiver,5000);
         std::cout << "Set Size:" << mutationClassSize << "\n";
         explorator->getNbNeighboursMax();
-        if(vm.count("dump-class")) {
-            explorator->dumpFiles((vm["dump-class"].as<std::string>()).c_str());
+        if(vm.count("print-class")) {
+            explorator->dumpFiles((vm["print-class"].as<std::string>()).c_str());
         }
         if(explorator->isAcyclic()) {
             std::cout << "The mutation class is acyclic !\n";
