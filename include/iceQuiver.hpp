@@ -61,6 +61,7 @@ class IceQuiver
 		void printMutations(int s);
 		void printMutationsE(int s);
 		void genGraph();
+        void printMultiplicityMap();
 
 		/* Getters and Setters */
 		void setM(int i, int j, mpz_class val);
@@ -94,11 +95,11 @@ class IceQuiver
 			return (mutations.size()>0)?mutations[mutations.size()-1]:-1;
 		}
 		void generateGreenVertices();
-        void generateBannedVertices();
-		int getNextGreenVertex();
-		int getRandomGreenVertex();
+        void generateFiniteGreenVertices();
+		int getNextFiniteGreenVertex();
+		int getRandomFiniteGreenVertex();
 		void forceGreenVertex(int s);
-		inline bool getGraphAJour()
+		inline bool getGraphIsUpToDate()
 		{
 			return graphIsUpToDate;
 		}
@@ -158,18 +159,19 @@ class IceQuiver
         bool isSourceOfInfiniteTypeArrow(int);
 		graph *oldGetNautyGraph();
         std::string mutationsToString();
-        void shiftMultiplicities();
-        void unshiftMultiplicities();
+        void shiftMultiplicity();
+        void unshiftMultiplicity();
         void semiDestroy();
 	private:
 		mpz_class *M;
 		int n;
 		int nbVertexsNauty;
-		std::map<uint64_t,mpz_class> multiplicity;
+    //We need a different term for "multiplicities"
+		std::map<uint64_t,mpz_class> multiplicity;//Documents the mutation length and the multiplicity.
         std::map<mpz_class,mpz_class> multiplicities;
 		std::vector<int> mutations;
 		std::vector<int> greenVertices;
-        std::vector<int> bannedVertices;
+        std::vector<int> finiteGreenVertices;
         graph nautyG[MAXN*MAXM];
 		graph nautyGC[MAXN*MAXM];
 		set *gv;

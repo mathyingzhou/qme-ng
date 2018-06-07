@@ -24,7 +24,7 @@
 */
 
 #include <boost/functional/hash.hpp>
-
+//Non-standard hash function
 template <typename T> struct MapHasher
 {
   inline size_t operator()(const T & c) const

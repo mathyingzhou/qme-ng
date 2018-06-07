@@ -47,7 +47,7 @@ class GreenExplorator
 		~GreenExplorator();
 		void printTree();
 		int insertInList(IceQuiver &pe);
-		int insertInList(IceQuiver &pe, std::list<IceQuiver> &c);
+		int insertInCemetary(IceQuiver &pe, std::list<IceQuiver> &c);
 		void clearC();
 		void greenExploration(IceQuiver);
         inline void setIsomorphTest(bool value) { isomorphTest = value;};
@@ -72,7 +72,7 @@ class GreenExplorator
         bool isomorphTest;
         bool dumpTruncated;
 		bool myIsomorphismNauty(IceQuiver &a, IceQuiver &b);
-        std::map<uint64_t,mpz_class> sizes;	
+        std::map<uint64_t,mpz_class> mgsInfo;	
         GreenSizeHash gsh;
        
 		
