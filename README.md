@@ -17,7 +17,7 @@ Installation (for macOS)
 
 2.Start "Terminal" from Settings/Utilities and go to the folder where you want to install qme-ng using the cd command. Ex: If you want to install qme-ng in /Users/JohnDoe/Documents then please type "cd /Users/JohnDoe/Documents" and then press enter.
 
-3.Type "sudo ./install.sh" and then press enter to complete the installation of all the dependencies (gmp and Boost) as well as compilation & linking of the qme-ng program.
+3.Type "sudo bash -x ./install.sh" and then press enter to complete the installation of all the dependencies (gmp and Boost) as well as compilation & linking of the qme-ng program.
 
 Usage
 ------------------------------------------------------------------------------
