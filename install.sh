@@ -15,6 +15,6 @@ tar xopf boost.tar
 cp -a /boost_1_67_0/. /usr/local/boost
 cd boost_1_67_0
 bash -x ./bootstrap.sh —-prefix=/usr/local/boost
-bash -x ./b2 install
+./b2 install
 cd $QME_NG_PATH
 make all
