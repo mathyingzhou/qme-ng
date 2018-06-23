@@ -14,7 +14,9 @@ Matthieu Pérotin.
 Installation (for macOS)
 ------------------------------------------------------------------------------
 1.If you already have macOS Command Line Tools please skip this step. Otherwise please type "xcode-select --install" and then click "install" in the software popup window.
+
 2.Start "Terminal" from Settings/Utilities and go to the folder where you want to install qme-ng using the cd command. Ex: If you want to install qme-ng in /Users/JohnDoe/Documents then please type "cd /Users/JohnDoe/Documents" and then press enter.
+
 3.Type "./install.sh" and then press enter to complete the installation of all the dependencies (gmp and Boost) as well as compilation & linking of the qme-ng program.
 
 Usage
@@ -22,10 +24,13 @@ Usage
 Currently qme-ng is only available using Terminal. In the future we may introduce GUI but this is not at the top of our priority. Here is how to use qme-ng:
 
 1.Start "Terminal" from Settings/Utilities and go to the folder where qme-ng is installed using the cd command. Ex: If qme-ng is in /Users/JohnDoe/Documents then please type "cd /Users/JohnDoe/Documents" and then press enter.
+
 2.Type "./qme-ng" to get instructions.
 
 Note:
+
 1.qme-ng requires an empty line at the end of a quiver/ice quiver file.
+
 2.If you use an ice quiver you should type the entire exchange matrix of the ice quiver, not just the extended exchange matrix of the subquiver containing non-frozen vertices.
 
 
