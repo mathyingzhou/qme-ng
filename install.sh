@@ -1,8 +1,9 @@
 #!/bin/bash
-echo -e "qme-ng is a quiver mutation software originally written by Mattieu Perotin and improved by Ying Zhou. The installer may takes about 30-45 minutes to finish. Please do not press any key unless you are asked to do so.\n"
-echo -e "Now we need to install the Command Line Tools for macOS. You will see a popup window. Please click "install" and wait for the tools to be downloaded and installed.\n"
+echo "qme-ng is a quiver mutation software originally written by Mattieu Perotin and improved by Ying Zhou. The installer may takes about 30-45 minutes to finish."
+echo "Now we need to install the Command Line Tools for macOS if it hasn't already been installed. If that's the case you will see a popup window. Please click "install" and wait for the tools to be downloaded and installed. Please refrain from pressing enter before Command Line Tools get installed."
+echo "On the other hand if you already have Command Line Tools then you will just see an error message. Then you just need to press enter to continue."
 xcode-select --install
-read -p "Please refrain from pressing enter before command line tools get installed. When command line tools have been successfully installed, please press enter to continue."
+read -p "When command line tools have been successfully installed, please press enter to continue."
 curl -o qme-ng.zip -L -k  https://github.com/mathyingzhou/qme-ng/archive/master.zip
 unzip qme-ng.zip
 cd qme-ng-master
@@ -25,4 +26,4 @@ bash -x ./bootstrap.sh —-prefix=/usr/local/boost
 ./b2 install
 cd $QME_NG_PATH
 make all
-echo -e "Congratulations! You have successfully installed qme-ng! Please email Ying Zhou at yzhou935@brandeis.edu if you have any questions concerning the software.\n"
+echo "Congratulations! You have successfully installed qme-ng! Please email Ying Zhou at yzhou935@brandeis.edu if you have any questions concerning the software. Have fun exploring quivers!"
