@@ -13,11 +13,9 @@ Matthieu Pérotin.
 
 Installation (for macOS)
 ------------------------------------------------------------------------------
-1.If you already have macOS Command Line Tools please skip this step. Otherwise please type "xcode-select --install" and then click "install" in the software popup window.
+1.Start "Terminal" from Settings/Utilities and go to the folder where you want to install qme-ng using the cd command. Ex: If you want to install qme-ng in /Users/JohnDoe/Documents then please type "cd /Users/JohnDoe/Documents" and then press enter.
 
-2.Start "Terminal" from Settings/Utilities and go to the folder where you want to install qme-ng using the cd command. Ex: If you want to install qme-ng in /Users/JohnDoe/Documents then please type "cd /Users/JohnDoe/Documents" and then press enter.
-
-3.Type "sudo bash -x ./install.sh" and then press enter to complete the installation of all the dependencies (gmp and Boost) as well as compilation & linking of the qme-ng program.
+2.Type "sudo bash ./install.sh" and then press enter to complete the installation of all the dependencies (gmp and Boost) as well as compilation & linking of the qme-ng program. The installation may take 60-75 minutes to finish because there are lots of dependencies to install.
 
 Usage
 ------------------------------------------------------------------------------
