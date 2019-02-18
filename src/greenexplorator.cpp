@@ -69,6 +69,7 @@ int GreenExplorator::generateMutations(IceQuiver &pe)
     strhash::iterator iit;
     std::map<uint64_t,mpz_class>::iterator mult_it;
     std::map<uint64_t,mpz_class> *mult;
+    vecivect::iterator vi;
     #ifdef DEBUG
     std::cout << "genMut: Working on "; pe.printMutationsE(0);
     #endif
@@ -93,7 +94,31 @@ int GreenExplorator::generateMutations(IceQuiver &pe)
         //A maximal green sequence/tail was detected or infinity was detected!
         size = p.getMutationsSize();
         mult = p.getMultiplicityMap();
+        printVectors(p.getAdmittedCVectors());
+        if (!p.getAdmittedCVectors().empty()) {
+            for (vi = p.admittedCVectors.begin(); vi != p.admittedCVectors.end(); vi++) {
+                if (!belongsTo(*vi, admissibleCVectors))
+                    admissibleCVectors.push_back(*vi);
+            }
+        }
+        printVectors(p.getAdmittedGVectors());
+        if (!p.getAdmittedGVectors().empty()) {
+            for (vi = p.admittedGVectors.begin(); vi != p.admittedGVectors.end(); vi++) {
+                if (!belongsTo(*vi, admissibleGVectors))
+                    admissibleGVectors.push_back(*vi);
+            }
+        }
+        printVectors(p.getAdmittedPVectors());
+        if (!p.getAdmittedPVectors().empty()) {
+            for (vi = p.admittedPVectors.begin(); vi != p.admittedPVectors.end(); vi++) {
+                if (!belongsTo(*vi, admissiblePVectors))
+                    admissiblePVectors.push_back(*vi);
+            }
+        }
         #ifdef DEBUG
+        printVectors(admissibleCVectors);
+        printVectors(admissibleGVectors);
+        printVectors(admissiblePVectors);
         std::cout << "MGS found!" << std::endl;
         p.printMutationsE(0);
         #endif
@@ -103,6 +128,7 @@ int GreenExplorator::generateMutations(IceQuiver &pe)
             std::cout << mult_it->first << "," << mult_it->second << std::endl;
 #endif
         }
+        
         if (isomorphTest) {
             mutations_v = p.getMutations();
             gsh.increment(mutations_v,size);
@@ -156,6 +182,7 @@ int GreenExplorator::insertInList(IceQuiver &pe)
     strhash::iterator iit;
     std::string mutations_str="";
     std::vector<int> mutations_v;
+    vecivect::iterator vi;
     //int i;
     uint64_t pe_size,n_size;
     std::stringstream ss (std::stringstream::in | std::stringstream::out);
@@ -198,11 +225,35 @@ int GreenExplorator::insertInList(IceQuiver &pe)
 
                 // 2. For all the quiver sizes attainable with the quiver
                 green_sizes=gsh.getGreenSizes(mutations_str);
+                if (!pe.getAdmittedCVectors().empty()) {
+                    for (vi = pe.admittedCVectors.begin(); vi != pe.admittedCVectors.end(); vi++) {
+                        if (!belongsTo(*vi, admissibleCVectors))
+                            admissibleCVectors.push_back(*vi);
+                    }
+                }
+                std::cout << "admissibleCVecs:" << std::endl;
+                printVectors(admissibleCVectors);
+                if (!pe.getAdmittedGVectors().empty()) {
+                    for (vi = pe.admittedGVectors.begin(); vi != pe.admittedGVectors.end(); vi++) {
+                        if (!belongsTo(*vi, admissibleGVectors))
+                            admissibleGVectors.push_back(*vi);
+                    }
+                }
+                std::cout << "admissibleGVecs:" << std::endl;
+                printVectors(admissibleGVectors);
+                if (!pe.getAdmittedPVectors().empty()) {
+                    for (vi = pe.admittedPVectors.begin(); vi != pe.admittedPVectors.end(); vi++) {
+                        if (!belongsTo(*vi, admissiblePVectors))
+                            admissiblePVectors.push_back(*vi);
+                    }
+                }
+                std::cout << "admissiblePVecs:" << std::endl;
+                printVectors(admissiblePVectors);
                 for(it=green_sizes->begin();it!=green_sizes->end();it++) {
                     // For all the sizes multiplicities
                     mul_map = pe.getMultiplicityMap();
 #ifdef DEBUG
-                    pe.printMultiplicityMap();
+                    //pe.printMultiplicityMap();
 #endif
                     for(it_mul=mul_map->begin();it_mul != mul_map->end();it_mul++) {
                         pe_size=it_mul->first;
@@ -288,23 +339,26 @@ int GreenExplorator::insertInCemetary(IceQuiver &pe, std::list<IceQuiver> &cem)
     return 0;
 }
 
-void GreenExplorator::greenExploration(IceQuiver pe)
+int GreenExplorator::greenExploration(IceQuiver pe)
 {
     int index = 0;
     int ret;
+    int max;
     std::map<uint64_t,mpz_class>::iterator it;
     mpz_class total=0;
     std::list<IceQuiver>::iterator pei;
     std::list<IceQuiver>::iterator peitest;
     std::stringstream ss (std::stringstream::in | std::stringstream::out);
     std::string filename;
+    vecivect::iterator vsi;
+    std::vector<mpz_class>::iterator veci;
     uint64_t cutPending = 0;
     // Initial population of the list
     insertInList(pe);
     if (pe.getN() == 2) {//When n=1
         std::cout << 1 << "\t=>\t" << 1 << std::endl;
         std::cout << "Total: " << 1 << std::endl;
-        return;
+        return 1;
     }
     pei = c.begin();
 //#ifdef DEBUG
@@ -399,8 +453,8 @@ void GreenExplorator::greenExploration(IceQuiver pe)
                 }
                 if(ret == 4) {
                     this->truncated = 1;
-                    std::cout << "Cut sequence: " << std::endl;
-                    pei->printMutationsE(0);
+                    //std::cout << "Cut sequence: " << std::endl;
+                    //pei->printMutationsE(0);
                     depthCut ++;
                 }
                 if(isomorphTest) {
@@ -442,6 +496,22 @@ void GreenExplorator::greenExploration(IceQuiver pe)
         std::cout << "WARNING: "<< cutPending << " branches were cut with pending isomorphs." << std::endl;
         std::cout << "All max green sequences < "<< max_depth << " may not have been found." << std::endl;
     }
+    //Print admissible c-vectors
+    std::cout << "Final CVec list:" << std::endl;
+    printVectors(admissibleCVectors);
+    //vecProcs(pe, admissibleCVectors);
+    std::cout << "Final GVec list:" << std::endl;
+    printVectors(admissibleGVectors);
+    std::cout << "Final PVec list:" << std::endl;
+    printVectors(admissiblePVectors);
+    std::cout << "CProc" << std::endl;
+    pe.vecProcs(admissibleCVectors);
+    std::cout << "PProc" << std::endl;
+    pe.vecProcs(admissiblePVectors);
+    if(total)
+        return mgsInfo.rbegin()->first;
+    else
+        return 0;
 }
 
 bool GreenExplorator::myIsomorphismNauty(IceQuiver &a, IceQuiver &b)
@@ -459,7 +529,7 @@ bool GreenExplorator::myIsomorphismNauty(IceQuiver &a, IceQuiver &b)
 
     // These two calls must be placed before hand
     // They are responsible for initializing all the other variables of
-    // objects (nbVertexsNauty, multiplicities...)
+    // objects (nbVerticesNauty, multiplicities...)
     c2 = (graph *)a.oldGetNautyGraph();
     c1 = (graph *)b.oldGetNautyGraph();
 

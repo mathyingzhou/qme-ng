@@ -47,9 +47,9 @@ void GreenSizeHash::addSizes(std::vector<int> &mutations, std::map<uint64_t,mpz_
     mul_hash::iterator mul_hash_it;
     std::pair<mul_hash::iterator, bool> ins_it;
 #ifdef DEBUG
-    std::cout << "Before adding sizes" << std::endl;
-    std::cout << "print Green Size:" << std::endl;
-    printGreenSize();
+    //std::cout << "Before adding sizes" << std::endl;
+    //std::cout << "print Green Size:" << std::endl;
+    //printGreenSize();
 #endif
     // 1. For each mutation subchain
     for(i=0;i<mutations.size();i++) {
@@ -108,9 +108,9 @@ void GreenSizeHash::addSizes(std::vector<int> &mutations, std::map<uint64_t,mpz_
         temp.clear();
     }
 #ifdef DEBUG
-    std::cout << "After adding sizes" << std::endl;
-    std::cout << "print Green Size:" << std::endl;
-    printGreenSize();
+    //std::cout << "After adding sizes" << std::endl;
+    //std::cout << "print Green Size:" << std::endl;
+    //printGreenSize();
 #endif
 }
 

@@ -25,7 +25,6 @@
 */
 
 #include "iceQuiver.hpp"
-
 IceQuiver::IceQuiver(const IceQuiver &ca)
 {
     int i,j;
@@ -43,27 +42,61 @@ IceQuiver::IceQuiver(const IceQuiver &ca)
     this->greenVertices = ca.greenVertices;
     this->finiteGreenVertices = ca.finiteGreenVertices;
     this->graphIsUpToDate = ca.graphIsUpToDate;
+    this->admittedCVectors = ca.admittedCVectors;
+    this->admittedGVectors = ca.admittedGVectors;
+    this->admittedPVectors = ca.admittedPVectors;
     multiplicity=ca.multiplicity;
     if(ca.graphIsUpToDate)
     {
-        this->nbVertexsNauty = ca.nbVertexsNauty;
+        this->nbVerticesNauty = ca.nbVerticesNauty;
         multiplicities = ca.multiplicities;
-        for(i=0;i<this->nbVertexsNauty;i++)
+        for(i=0;i<this->nbVerticesNauty;i++)
             nautyGC[i]=ca.nautyGC[i];
     }
-    
+    //std::cout << "Meow" << std::endl;
+    is_c_known = ca.is_c_known;
+    if (is_c_known) {
+        cartan.setlength(n/2, n/2);
+        euler.setlength(n/2, n/2);
+        phi.setlength(n/2, n/2);
+        phiin.setlength(n/2, n/2);
+        cartan = ca.cartan;
+        euler = ca.euler;
+        phi = ca.phi;
+        phiin = ca.phiin;
+    }
 }
 
 IceQuiver::IceQuiver(Quiver c)
 {
     int i,j;
+    mat me, cmt, tcartan, tphi, tphiin;
+    alglib::matinvreport rep;
+    alglib::ae_int_t info;
     this->n = 2 * c.getN();
     this->M=new mpz_class[n*n];
+    cartan.setlength(n/2, n/2);
+    euler.setlength(n/2, n/2);
+    phi.setlength(n/2, n/2);
+    phiin.setlength(n/2, n/2);
+    tphi.setlength(n/2, n/2);
+    tphiin.setlength(n/2, n/2);
+    tcartan.setlength(n/2, n/2);
+    me.setlength(n/2, n/2);
+    cmt.setlength(n/2, n/2);
     for(i=0;i<n/2;i++)
     {
         for(j=0;j<n/2;j++)
         {
-                M[i*n+j]=mpz_class(c.getM(i,j));
+            M[i*n+j]=mpz_class(c.getM(i,j));
+            if (i == j) {
+                cartan[i][j] = 1;
+                me[i][j] = -1;
+            }
+            else {
+                cartan[i][j] = c.getM(i, j) < 0 ? c.getM(i, j) : 0;
+                me[i][j] = -cartan[i][j];
+            }
         }
         M[i*n+i+n/2] = mpz_class(1);//Let's use the BDP convention on what "green" means.
         M[(i+n/2)*n+i] = mpz_class(-1);
@@ -72,6 +105,22 @@ IceQuiver::IceQuiver(Quiver c)
     multiplicity[0] = 1;
     semiFreed = false;
     mutationsSize = 0;
+    euler = cartan;
+    tcartan = rizem(cartan);
+    alglib::rmatrixinverse(tcartan, n/2, info, rep);
+    cartan = intizem(tcartan);
+    alglib::rmatrixtranspose(n/2, n/2, tcartan, 0, 0, cmt, 0, 0);
+    //std::cout << cmt.tostring(0) << me.tostring(0) << tphi.tostring(0) << std::endl;
+    alglib::rmatrixgemm(n/2,n/2,n/2,1,cmt,0,0,0,me,0,0,0,0,tphi,0,0);
+    phi = intizem(tphi);
+    tphiin = tphi;
+    alglib::rmatrixinverse(tphiin, n/2, info, rep);
+    phiin = intizem(tphiin);
+    is_c_known = true;
+    std::cout << "Cartan matrix: " << cartan.tostring() << std::endl;
+    std::cout << "Euler matrix: " << euler.tostring() << std::endl;
+    std::cout << "Coxeter matrix: " << phi.tostring() << std::endl;
+    std::cout << "Inverse of Coxeter matrix: " << phiin.tostring() << std::endl;
 }
 
 IceQuiver::IceQuiver(const char *file)
@@ -141,6 +190,7 @@ IceQuiver::IceQuiver(const char *file)
     multiplicity[0] = 1;
     semiFreed = false;
     mutationsSize = 0;
+    is_c_known = false;
 }
 
 IceQuiver::~IceQuiver()
@@ -158,9 +208,12 @@ void IceQuiver::semiDestroy()
     multiplicity.clear();
     greenVertices.clear();
     finiteGreenVertices.clear();
+    admittedCVectors.clear();
+    admittedGVectors.clear();
     mutationString = this->mutationsToString();
     mutations.clear();
     semiFreed = true;
+    is_c_known = false;
 }
 
 /*
@@ -175,6 +228,21 @@ int IceQuiver::mutate(int k)
 {
     int i,j;
     int lastMutatedVertex;
+    ivect cVec, gVec, pVec;
+    imat cMat, gMat, pMat;
+    mat tcMat, tgMat, tpMat;
+    alglib::real_2d_array temp;
+    alglib::ae_int_t info;
+    alglib::matinvreport rep;
+    cVec.setlength(this->getN()/2);
+    gVec.setlength(this->getN()/2);
+    pVec.setlength(this->getN()/2);
+    cMat.setlength(this->getN()/2, this->getN()/2);
+    gMat.setlength(this->getN()/2, this->getN()/2);
+    tgMat.setlength(this->getN()/2, this->getN()/2);
+    pMat.setlength(this->getN()/2, this->getN()/2);
+    tpMat.setlength(this->getN()/2, this->getN()/2);
+    temp.setlength(this->getN()/2, this->getN()/2);
     //int infinite = 0;
     // On ne fait rien si k ne correspond pas à un vertex du graphe
     if(k<0 || k>= this->n)
@@ -196,12 +264,36 @@ int IceQuiver::mutate(int k)
         M[i*n+k]=-M[i*n+k];
         M[k*n+i]=-M[k*n+i];
     }
-
-    //if(p != 0 && this->infinite(p)) {
-        //throw Exception("The mutation class is infinite ! " + getMutations());
-        //return 0;
-    //}
-
+    
+    for(i=0;i<n/2;i++)
+    {
+        for(j=0;j<n/2;j++) {
+            cMat(i,j) = M[(i+n/2)*n+j].mpz_class::get_si();
+            if (j == k) {
+                cVec(i) = cMat(i,j);
+            }
+        }
+    }
+    //std::cout << "CMat" << std::endl;
+    //std::cout << cMat.tostring() << std::endl;
+    tcMat = rizem(cMat);
+    alglib::rmatrixtranspose(this->getN()/2,this->getN()/2,tcMat,0,0,tgMat,0,0);
+    alglib::rmatrixinverse(tgMat, info, rep);
+    //alglib::rmatrixtranspose(this->getN()/2,this->getN()/2,gMat,0,0,temp,0,0);
+    gMat = intizem(tgMat);
+    //std::cout << "GMat" << std::endl;
+    //std::cout << gMat.tostring() << std::endl;
+    for (i = 0; i < n/2; i++) {
+        gVec[i] = gMat(i, k);
+    }
+    //std::cout << "PMat" << std::endl;
+    //std::cout << cartan.tostring(0) << std::endl;
+    alglib::rmatrixgemm(n/2,n/2,n/2,1,rizem(cartan),0,0,0,tgMat,0,0,0,0,tpMat,0,0);
+    pMat = intizem(tpMat);
+    //std::cout << pMat.tostring() << std::endl;
+    for (i = 0; i < n/2; i++) {
+        pVec[i] = pMat(i, k) >= 0 ? pMat(i, k) : -pMat(i, k);
+    }
     /*
         On met à jour les mutations qui ont été appliquées sur le quiver
         Si la mutation appliquée est la même que la dernière qui avait été appliquée:
@@ -219,13 +311,36 @@ int IceQuiver::mutate(int k)
             mutations.pop_back();
             this->unshiftMultiplicity();
             mutationsSize--;
-
+            //TODO: Modify this part to accommodate red muts.
         }
         else
         {
             mutations.push_back(k);
             this->shiftMultiplicity();
             mutationsSize++;
+            if (!belongsTo(cVec, admittedCVectors))
+                admittedCVectors.push_back(cVec);
+            if (!belongsTo(gVec, admittedGVectors))
+                admittedGVectors.push_back(gVec);
+            if (!belongsTo(pVec, admittedPVectors)) {
+                //std::cout << "Meow" << std::endl;
+                admittedPVectors.push_back(pVec);
+            }
+            
+#ifdef DEBUG
+            std::cout << "Printing c-vectors" << std::endl;
+            printVector(cVec);
+            std::cout << "Printing admitted c-vectors" << std::endl;
+            printVectors(admittedCVectors);
+            std::cout << "Printing g-vectors" << std::endl;
+            printVector(gVec);
+            std::cout << "Printing admitted g-vectors" << std::endl;
+            printVectors(admittedGVectors);
+            std::cout << "Printing p-vectors" << std::endl;
+            printVector(pVec);
+            std::cout << "Printing admitted p-vectors" << std::endl;
+            printVectors(admittedPVectors);
+#endif
         }
     }
     else
@@ -233,6 +348,26 @@ int IceQuiver::mutate(int k)
         mutations.push_back(k);
         this->shiftMultiplicity();
         mutationsSize++;
+        if (!belongsTo(cVec, admittedCVectors))
+            admittedCVectors.push_back(cVec);
+        if (!belongsTo(gVec, admittedGVectors))
+            admittedGVectors.push_back(gVec);
+        if (!belongsTo(pVec, admittedPVectors))
+            admittedPVectors.push_back(pVec);
+#ifdef DEBUG
+        std::cout << "Printing c-vectors" << std::endl;
+        printVector(cVec);
+        std::cout << "Printing admitted c-vectors" << std::endl;
+        printVectors(admittedCVectors);
+        std::cout << "Printing g-vectors" << std::endl;
+        printVector(gVec);
+        std::cout << "Printing admitted g-vectors" << std::endl;
+        printVectors(admittedGVectors);
+        std::cout << "Printing p-vectors" << std::endl;
+        printVector(pVec);
+        std::cout << "Printing admitted p-vectors" << std::endl;
+        printVectors(admittedPVectors);
+#endif
     }
     this->generateGreenVertices();
     this->generateFiniteGreenVertices();
@@ -280,34 +415,6 @@ bool IceQuiver::infinite(mpz_class p)
             }
         }
     } 
-    return false;
-}
-
-//The Brustle-Hermes-Igusa-Todorov test
-bool IceQuiver::isSinkOfInfiniteTypeArrow(int k) {
-    int i;
-    int quiverSize = n/2;
-    for(i=0;i<quiverSize;i++)
-    {
-        if(M[k*n+i] < 0 && M[i*n+k] * M[k*n+i] < -3)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-//The Brustle-Hermes-Igusa-Todorov test
-bool IceQuiver::isSourceOfInfiniteTypeArrow(int k) {
-    int i;
-    int quiverSize = n/2;
-    for(i=0;i<quiverSize;i++)
-    {
-        if(M[k*n+i] > 0 && M[i*n+k] * M[k*n+i] < -3)
-        {
-            return true;
-        }
-    }
     return false;
 }
 
@@ -485,39 +592,39 @@ void IceQuiver::genGraph()
         }
     // 2. On with graph construction...
 
-        nbVertexsNauty = 0;
+        nbVerticesNauty = 0;
         nbSN_tmp = 0;
         for(mul_it=multiplicities.begin();mul_it!=multiplicities.end();mul_it++)
         {
-            multiplicities_index[mul_it->first]=nbVertexsNauty;
+            multiplicities_index[mul_it->first]=nbVerticesNauty;
             nbSN_tmp += mul_it->second;
             if(nbSN_tmp.fits_sint_p()) {
-                nbVertexsNauty = nbVertexsNauty + mul_it->second.get_si();
+                nbVerticesNauty = nbVerticesNauty + mul_it->second.get_si();
             }
             else
             {
-                throw Exception("Wrap nbVertexsNauty!");
+                throw Exception("Wrap nbVerticesNauty!");
             }
         }
 
         nbSN_tmp += this->n;
         if(nbSN_tmp.fits_sint_p()) {
-            nbVertexsNauty += this->n;
+            nbVerticesNauty += this->n;
         }
         else
         {
-            throw Exception("Wrap nbVertexsNauty!");
+            throw Exception("Wrap nbVerticesNauty!");
         }
 
-        m=(nbVertexsNauty + WORDSIZE - 1)/WORDSIZE;
+        m=(nbVerticesNauty + WORDSIZE - 1)/WORDSIZE;
 
         /* Si on trouve une valeur strictement positive dans la matrix d'incidence, alors on ajoute une arrête dans notre graphe */
-        for(i=0;i<nbVertexsNauty;i++)
+        for(i=0;i<nbVerticesNauty;i++)
         {
             gv=GRAPHROW(nautyG,i,m);
             EMPTYSET(gv,m);
         }
-        for(i=0;i<nbVertexsNauty;i++)
+        for(i=0;i<nbVerticesNauty;i++)
         {
             lab1[i]=i;
             ptn[i]=1;
@@ -561,7 +668,7 @@ void IceQuiver::genGraph()
         options.invarproc = adjacencies;
         options.mininvarlevel = 0;
         options.maxinvarlevel = 99;
-        nauty_check(WORDSIZE,m,nbVertexsNauty,NAUTYVERSIONID);
+        nauty_check(WORDSIZE,m,nbVerticesNauty,NAUTYVERSIONID);
         for(mul_it=multiplicities.begin();mul_it!=multiplicities.end();mul_it++)
         {
             nbSN_tmp = n-1+multiplicities_index[mul_it->first];
@@ -577,7 +684,7 @@ void IceQuiver::genGraph()
         
 
         nauty(nautyG,lab1,ptn,NULL,orbits,&options,&stats,
-                                  workspace,5*MAXM,m,nbVertexsNauty,nautyGC);
+                                  workspace,5*MAXM,m,nbVerticesNauty,nautyGC);
         this->graphIsUpToDate=true;    
     }
 }
@@ -677,3 +784,125 @@ void IceQuiver::printMultiplicityMap() {
         std::cout << it->first << "," << it->second << std::endl;
     }
 }
+int IceQuiver::calcQuasiLength(ivect v) {
+    int a = this->getN()/2;
+    int max = a - 2;
+    mat id = ident(a), temp;
+    mat ph = rizem(phi);
+    mat z;
+    vect ll;
+    int i = 2, j = 1;
+    alglib::ae_int_t info;
+    alglib::matinvreport rep;
+    z.setlength(a, a);
+    temp.setlength(a, a);
+    ll.setlength(a);
+    temp = id;
+    if (!isreg(v)) {
+        return 0;
+    }
+    //std::cout << "id " << id.tostring(3) << std::endl;
+    //std::cout << "ph " << ph.tostring(3) << std::endl;
+    for (;i <= max ;i++) {
+        //std::cout << "temp " << temp.tostring(3) << std::endl;
+        alglib::rmatrixgemm(a,a,a,1,temp,0,0,0,ph,0,0,0,1,id,0,0);
+        temp = id;
+        //std::cout << "i is " << i << std::endl;
+        //std::cout << "temp " << temp.tostring(2) << std::endl;
+        id = ident(a);
+        z = rizem(intizem(temp));
+        //std::cout << "z " << z.tostring(3) << std::endl;
+        if (alglib::rmatrixdet(z) == 0) {
+            //std::cout << "The mat is singular!" << std::endl;
+            continue;
+        }
+            
+        alglib::rmatrixinverse(z, a, info, rep);
+        ll = matvecmult(z, rizev(v));
+        //std::cout << "z " << z.tostring(3) << std::endl;
+        //std::cout << "ll is" << ll.tostring(6) << std::endl;
+        if (vecisint(ll) && ivecisnonneg(intizev(ll)) && isEulerOne(intizev(ll))) {
+            j = i;
+            //std::cout << "Get out at j = " << j << std::endl;
+        }
+    }
+    return j;
+}
+int IceQuiver::calcEulerForm(ivect v) {
+    imat temp = mult(vec2matr(v), euler);
+    imat temp2 = mult(temp, vec2matc(v));
+    return temp2[0][0];
+}
+
+int IceQuiver::vecProc(ivect v) {
+    int p = prepdeg(v);
+    int i = preideg(v);
+    if (calcEulerForm(v) != 1) {
+        std::cout << v.tostring() << " is not the dimension vector of any indecomposable rigid module!" << p << std::endl;
+        return -1;
+    }
+    if(p >= 0) {
+        std::cout << v.tostring() << " is preprojective of degree " << p << std::endl;
+    }
+    if (i >= 0) {
+        std::cout << v.tostring() << " is preinjective of degree " << i << std::endl;
+    }
+    if (p < -1) {
+        std::cout << v.tostring() << " is regular in standard stable tube of rank " << -p << " and has quasi-length " << calcQuasiLength(v) << std::endl;
+        return 1;
+    }
+    if (p == -1 && i == -1) {
+        std::cout << v.tostring() << " is regular of quasi-length " << calcQuasiLength(v);
+        if (isComponentSincere(v))
+            std::cout << " in a sincere component ";
+        else
+            std::cout << " in a nonsincere component ";
+        std::cout << "with deg 0 quasi-simple " << getDegZeroQuasiSimple(v).tostring() << std::endl;
+        return 2;
+    }
+    return 0;
+}
+
+void IceQuiver::vecProcs(vecivect vs) {
+    vecivect::iterator vi, vj;
+    vecivect reg_list;
+    ivect qs;
+    int i;
+    for (vi = vs.begin(); vi != vs.end(); vi++) {
+        i = vecProc(*vi);
+        if (i == 2) {
+            qs = getDegZeroQuasiSimple(*vi);
+            for (vj = reg_list.begin(); vj != reg_list.end(); vj++) {
+                if (sameMOrbit(phi, qs, *vj)) {
+                    std::cout << qs.tostring() << " and " << vj->tostring() << " are in the same component with degree difference " << sameMOrbit(phi, *vj, qs) << " !" << std::endl;
+                    break;
+                }
+            }
+            if (vj == reg_list.end()) {
+                reg_list.push_back(qs);
+            }
+        }
+    }
+    std::cout << "Component list" << std::endl;
+    for (vj = reg_list.begin(); vj != reg_list.end(); vj++) {
+        std::cout << vj->tostring() << std::endl;
+    }
+}
+
+ivect IceQuiver::getQuasiSimpleQuot(ivect v) {
+    int len = calcQuasiLength(v);
+    alglib::ae_int_t info;
+    alglib::matinvreport rep;
+    imat mpom = mppo(phi,len - 1);
+    mat tm = rizem(mpom);
+    ivect qs;
+    alglib::rmatrixinverse(tm, n/2, info, rep);
+    qs = intizev(matvecmult(tm, rizev(v)));
+    return qs;
+}
+
+/*int IceQuiver::calcTameM() {
+    if (ab == )
+}*/
+
+

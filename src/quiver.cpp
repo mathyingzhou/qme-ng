@@ -304,6 +304,10 @@ Quiver::Quiver(int type, int nbVertices, std::string orientation)
                     throw Exception("ERROR: bad vertex number asked");
             }    
         break;
+        case K:
+            n = 2;
+            M[0][1] = nbVertices;//Here nbVertices are used to denote the number of arrows
+            M[1][0] = -nbVertices;
         case ATILDE:
             n = nbVertices + 1;
             if(n<2)
@@ -322,8 +326,8 @@ Quiver::Quiver(int type, int nbVertices, std::string orientation)
                 M[n-1][0] = intOrientation[n-1];
             }
             else {//Kronecker quiver
-                M[0][1] = intOrientation[0];
-                M[1][0] = -intOrientation[0];
+                M[0][1] = 2 * intOrientation[0];
+                M[1][0] = -2 * intOrientation[0];
             }
             #ifdef DEBUG
             this->print();
@@ -912,7 +916,7 @@ void Quiver::setM(int i, int j, int val)
 //TODO: This function needs to be fixed in the Valued Quivers Update.
 void Quiver::genGraph()
 {
-    int i,j,m,nbVertexsNauty;
+    int i,j,m,nbVerticesNauty;
     int lab1[MAXN],ptn[MAXN],orbits[MAXN];
     static DEFAULTOPTIONS_GRAPH(options);
     statsblk stats;
@@ -921,8 +925,8 @@ void Quiver::genGraph()
     if(!this->graphIsUpToDate)
     {
         
-        nbVertexsNauty = 2 * this->getN();
-        m=(nbVertexsNauty + WORDSIZE - 1)/WORDSIZE;
+        nbVerticesNauty = 2 * this->getN();
+        m=(nbVerticesNauty + WORDSIZE - 1)/WORDSIZE;
 
         /* If we find a positive value in the exchange matrix, then we add an arrow in our graph */
         for(i=0;i<this->getN();i++)
@@ -955,7 +959,7 @@ void Quiver::genGraph()
         options.getcanon = TRUE;//get canonically labelled graph
         options.digraph = TRUE;//the graph contains arrows
         options.defaultptn = FALSE;//the initial coloring of the graph is determined by lab1 and ptn
-        nauty_check(WORDSIZE,m,nbVertexsNauty,NAUTYVERSIONID);
+        nauty_check(WORDSIZE,m,nbVerticesNauty,NAUTYVERSIONID);
         
         for(i=0;i<2*n;i++)
         {
@@ -967,7 +971,7 @@ void Quiver::genGraph()
         
         
         nauty(nautyG,lab1,ptn,NULL,orbits,&options,&stats,
-                                  workspace,5*MAXM,m,nbVertexsNauty,nautyGC);//A modified version of this is now densenauty
+                                  workspace,5*MAXM,m,nbVerticesNauty,nautyGC);//A modified version of this is now densenauty
         this->graphIsUpToDate=1;
     }
 }
