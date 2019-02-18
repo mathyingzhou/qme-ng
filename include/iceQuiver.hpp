@@ -32,7 +32,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/tokenizer.hpp>
 #include <string>
 #include <fstream>
@@ -43,6 +43,9 @@
 #include "Exception.h"
 #include "quiver.hpp"
 #include "nautinv.h"
+#include "linalgext.hpp"
+#include <set>
+#include <cmath>
 
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
@@ -88,7 +91,7 @@ class IceQuiver
 		}
 		inline int getNbVertexsNauty()
         {
-            return nbVertexsNauty;
+            return nbVerticesNauty;
         }
 		inline int lastMutation()
 		{
@@ -154,18 +157,87 @@ class IceQuiver
         {
             return mutationsSize;
         }
+        inline vecivect getAdmittedCVectors(void)
+        {
+            return admittedCVectors;
+        }
+        inline vecivect getAdmittedGVectors(void)
+        {
+            return admittedGVectors;
+        }
+        inline vecivect getAdmittedPVectors(void)
+        {
+            return admittedPVectors;
+        }
+        inline imat getCartan(void) {
+            return cartan;
+        }
+        inline imat getEuler(void) {
+            return euler;
+        }
+        inline imat getPhi(void) {
+            return phi;
+        }
+        inline imat getPhiInverse(void) {
+            return phiin;
+        }
+        inline bool isCKnown(void) {
+            return is_c_known;
+        }
+        inline int prepdeg(ivect v) {
+            return mFinDeg(phi, v);
+        }
+        inline int preideg(ivect v) {
+            return mFinDeg(phiin, v);
+        }
+        inline bool isprep(ivect v) {
+            return (mFinDeg(phi, v) != -1);
+        }
+        inline bool isprei(ivect v) {
+            return (mFinDeg(phiin, v) != -1);
+        }
+        inline bool isreg(ivect v) {
+            return (mFinDeg(phi, v) == -1) && (mFinDeg(phiin, v) == -1);
+        }
+        inline bool isTauSincere(ivect v) {
+            return isSincere(minvec(phi, phiin, v));
+        }
+        inline bool isEulerOne(ivect v) {
+            return (calcEulerForm(v) == 1);
+        }
+        inline bool sameComponent(ivect v1, ivect v2) {
+            return sameMOrbit(phi, getQuasiSimpleQuot(v1), getQuasiSimpleQuot(v2));
+        }
+        int calcEulerForm(ivect);
 		Quiver *getQuiver(void);
-        bool isSinkOfInfiniteTypeArrow(int);
-        bool isSourceOfInfiniteTypeArrow(int);
 		graph *oldGetNautyGraph();
         std::string mutationsToString();
         void shiftMultiplicity();
         void unshiftMultiplicity();
         void semiDestroy();
+        int calcQuasiLength(ivect);
+        int vecProc(ivect);
+        void vecProcs(vecivect);
+        ivect getQuasiSimpleQuot(ivect);
+        inline ivect getDegZeroQuasiSimple(ivect v) {
+            return minvec(phi, phiin, getQuasiSimpleQuot(v));
+        }
+        inline bool isComponentSincere(ivect v) {
+            return isTauSincere(getQuasiSimpleQuot(v));
+        }
+    
+        vecivect admittedCVectors;
+        vecivect admittedGVectors;
+        vecivect admittedPVectors;
+        imat cartan;
+        imat euler;
+        imat phi;
+        imat phiin;
+        bool is_c_known;
 	private:
 		mpz_class *M;
 		int n;
-		int nbVertexsNauty;
+		int nbVerticesNauty;
     //We need a different term for "multiplicities"
 		std::map<uint64_t,mpz_class> multiplicity;//Documents the mutation length and the multiplicity.
         std::map<mpz_class,mpz_class> multiplicities;
@@ -179,6 +251,5 @@ class IceQuiver
         bool semiFreed;
         std::string mutationString;
         uint64_t mutationsSize;
-
 };
 #endif

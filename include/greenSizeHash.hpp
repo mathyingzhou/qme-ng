@@ -40,6 +40,7 @@
 // by this class are kind of complicated...
 typedef boost::unordered_map<std::string, const std::map<uint64_t,mpz_class> *> strhash;
 typedef boost::unordered_map<std::map<uint64_t,mpz_class> , int, MapHasher<std::map<uint64_t,mpz_class> > > mul_hash;
+
 //MapHasher is a hash function, not the mapped type.
 
 class GreenSizeHash
@@ -67,6 +68,6 @@ class GreenSizeHash
 
     private:
         strhash green_size;//Documents which mutation string corresponds to which map
-        mul_hash multiplicities;//Count how many times does each map appear
+        mul_hash multiplicities;//Count how many times does each map in green_size appear
 };
 #endif

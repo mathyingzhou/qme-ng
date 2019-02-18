@@ -37,7 +37,9 @@
 #include <stdint.h>
 #include <map>
 #include <sstream>
+#include <algorithm>
 #include "greenSizeHash.hpp"
+
 
 
 class GreenExplorator
@@ -49,7 +51,7 @@ class GreenExplorator
 		int insertInList(IceQuiver &pe);
 		int insertInCemetary(IceQuiver &pe, std::list<IceQuiver> &c);
 		void clearC();
-		void greenExploration(IceQuiver);
+		int greenExploration(IceQuiver);
         inline void setIsomorphTest(bool value) { isomorphTest = value;};
         inline void setDumpTruncated(bool value) { dumpTruncated = value;};
         //inline void setP(mpz_class value) { p = value;};
@@ -74,8 +76,9 @@ class GreenExplorator
 		bool myIsomorphismNauty(IceQuiver &a, IceQuiver &b);
         std::map<uint64_t,mpz_class> mgsInfo;	
         GreenSizeHash gsh;
-       
-		
+        vecivect admissibleCVectors;
+        vecivect admissibleGVectors;
+        vecivect admissiblePVectors;
 };
 
 #endif

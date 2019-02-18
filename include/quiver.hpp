@@ -45,6 +45,7 @@
 #define MAXN 100
 #include "nauty.h"
 #include "nautinv.h"
+#include "ap.h"
 
 #define A 0
 #define D 1
@@ -70,6 +71,7 @@
 #define FTILDE42 21
 #define GTILDE21 22
 #define GTILDE22 23
+#define K 24
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 typedef std::pair<mpz_class,mpz_class> valued_arrow;
@@ -196,6 +198,7 @@ class Quiver
 		graph nautyGC[MAXN*MAXM];
 		set *gv;
        	bool exploreCycle(int *,int);
+        alglib::real_2d_array cm;
 
 };
 #endif
