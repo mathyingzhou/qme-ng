@@ -35,9 +35,23 @@ naugraph.o : $(SRCDIR)/naugraph.c
 	$(CC) $(CCFLAGS) $< $(INC) -c
 nautinv.o : $(SRCDIR)/nautinv.c
 	$(CC) $(CCFLAGS) $< $(INC) -c
+ap.o : $(SRCDIR)/ap.cpp
+	$(CC) $(CCFLAGS) $< $(INC) -c
+alglibinternal.o : $(SRCDIR)/alglibinternal.cpp
+	$(CC) $(CCFLAGS) $< $(INC) -c
+alglibmisc.o : $(SRCDIR)/alglibmisc.cpp
+	$(CC) $(CCFLAGS) $< $(INC) -c
+linalg.o : $(SRCDIR)/linalg.cpp
+	$(CC) $(CCFLAGS) $< $(INC) -c
+linalgext.o : $(SRCDIR)/linalgext.cpp
+	$(CC) $(CCFLAGS) $< $(INC) -c
+qme-ng.o: qme-ng.cpp greenexplorator.o greenfinder.o mutexploratorSeq.o mutexplorator.o greenSizeHash.o iceQuiver.o quiver.o Exception.o nautil.o rng.o nauty.o naututil.o nausparse.o naugraph.o nautinv.o ap.o alglibmisc.o alglibinternal.o linalg.o linalgext.o
+	$(CC) $(CCFLAGS) $< $(INC) -c
+qme-ng: qme-ng.o greenexplorator.o greenfinder.o mutexploratorSeq.o mutexplorator.o greenSizeHash.o iceQuiver.o quiver.o Exception.o nautil.o rng.o nauty.o naututil.o nausparse.o naugraph.o nautinv.o ap.o alglibmisc.o alglibinternal.o linalg.o linalgext.o
+	$(CC) $^ $(LDFLAGS) -o $@
 
-qme-ng: qme-ng.cpp greenexplorator.o greenfinder.o mutexploratorSeq.o mutexplorator.o greenSizeHash.o iceQuiver.o quiver.o Exception.o nautil.o rng.o nauty.o naututil.o nausparse.o naugraph.o nautinv.o
-	$(CC) $(CCFLAGS) $(INC) $^ $(LDFLAGS) -o $@
+#test: qme-ng.o greenexplorator.o greenfinder.o mutexploratorSeq.o mutexplorator.o greenSizeHash.o iceQuiver.o quiver.o Exception.o nautil.o rng.o nauty.o naututil.o nausparse.o naugraph.o nautinv.o
+#	$(CC) $(CCFLAGS) $(INC) $^ $(LDFLAGS) -o $@
 
 clean:
 	-rm -f *.o qme-ng *.cpp~ src/*.cpp~ include/*.hpp~ src/*.c~ include/*.h~
