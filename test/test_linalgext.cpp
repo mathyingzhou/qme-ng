@@ -11,11 +11,14 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/data/monomorphic.hpp>
 #include <stdio.h>
+#include <cmath>
 #include <iostream>
 #include "linalgext.hpp"
+#include "Exception.h"
 namespace bdata = boost::unit_test::data;
 namespace utf = boost::unit_test;
 //Disabled by default: Mppo, Rizem
+//TODO: Identv & Ident need to throw exceptions
 //sumvec
 BOOST_AUTO_TEST_SUITE(SumVec);
 BOOST_DATA_TEST_CASE(SumVecTestLen1, bdata::xrange<double>(-10, 10, 0.15), rand1) {
@@ -444,6 +447,9 @@ BOOST_DATA_TEST_CASE(IdentvAny, bdata::xrange<int>(1, 10, 1), rand1) {
     for (i = 0; i < rand1; i++)
         BOOST_CHECK_CLOSE(v[i], 1, 0.0001f);
 }
+BOOST_DATA_TEST_CASE(IdentvN, bdata::xrange<int>(-10, 0, 1), rand1) {
+    BOOST_CHECK_THROW(identv(rand1), Exception);
+}
 BOOST_AUTO_TEST_SUITE_END();
 //Ident
 BOOST_AUTO_TEST_SUITE(Ident);
@@ -461,8 +467,43 @@ BOOST_DATA_TEST_CASE(IdentAny, bdata::xrange<int>(1, 10, 1), rand1) {
         }
     }
 }
+BOOST_DATA_TEST_CASE(IdentN, bdata::xrange<int>(-10, 0, 1), rand1) {
+    BOOST_CHECK_THROW(ident(rand1), Exception);
+}
 BOOST_AUTO_TEST_SUITE_END();
-
+//vecisint
+BOOST_AUTO_TEST_SUITE(Vecisint);
+BOOST_DATA_TEST_CASE(VecisintLen1Large, bdata::xrange<double>(-10, 10, 0.15), rand1) {
+    vect v;
+    v.setlength(1);
+    v[0] = rand1;
+    if (std::abs(v[0] - round(v[0])) <= 0.001)
+        BOOST_CHECK_EQUAL(vecisint(v), true);
+    else
+        BOOST_CHECK_EQUAL(vecisint(v), false);
+}
+BOOST_DATA_TEST_CASE(VecisintLen1Small, bdata::xrange<double>(-0.0009, 0.0009, 0.0001)*bdata::xrange<int>(-10, 10, 1), rand1, rand2) {
+    vect v;
+    v.setlength(1);
+    v[0] = rand1 + rand2;
+    BOOST_CHECK_EQUAL(vecisint(v), true);
+}
+/*BOOST_DATA_TEST_CASE(VecisintTestLen2, bdata::random(bdata::distribution=std::uniform_real_distribution<float>(-10, 10)) ^ bdata::xrange<double>(-10, 10, 0.1), rand1, rand2) {
+    vect v;
+    v.setlength(2);
+    v[0] = rand1;
+    v[1] = rand2;
+    BOOST_CHECK_CLOSE(sumvec(v), rand1 + rand2, 0.0001f);
+}
+BOOST_DATA_TEST_CASE(VecisintLen3, bdata::xrange<double>(-4, 4, 0.2) * bdata::xrange<double>(-4, 4, 0.3) *  bdata::xrange<double>(-4, 4, 0.4), rand1, rand2, rand3) {
+    vect v;
+    v.setlength(3);
+    v[0] = rand1;
+    v[1] = rand2;
+    v[2] = rand3;
+    BOOST_CHECK_CLOSE(sumvec(v), rand1 + rand2 + rand3, 0.0001f);
+}*/
+BOOST_AUTO_TEST_SUITE_END();
 
 /*BOOST_AUTO_TEST_CASE(MyTestCaseFalse)
 {
