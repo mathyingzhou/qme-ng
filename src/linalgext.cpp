@@ -258,20 +258,24 @@ mat vec2matc(vect v) {
     }
     return M;
 }
+//Take the k-th (starting from 0) column of matrix M
+//Tested
 vect matc2vec(mat M, int k) {
     vect v;
     int i = 0;
-    long l = M.rows();
-    if (!l)
-        throw Exception("Error: Can not apply matc2vec to an empty matrix.");
-    if (k < 0 || k >= l)
+    long l1 = M.rows();
+    long l2 = M.cols();
+    if (!l1 || !l2)
+        throw Exception("Error: Can not apply matr2vec to an empty matrix.");
+    if (k < 0 || k >= l2)
         throw Exception("Error: The index is out of range.");
-    v.setlength(l);
-    for (; i < l; i++) {
+    v.setlength(l1);
+    for (; i < l1; i++) {
         v[i] = M[i][k];
     }
     return v;
 }
+//Is an int vector sincere?
 //Tested
 bool isSincere(ivect v) {
     int i = 0;
