@@ -24,9 +24,13 @@ bool belongsTo(ivect array, vecivect vs) {
     }
     return false;
 }
+//Return ident matrix of size n * n
+//Tested
 mat ident(int n) {
     int i = 0, j = 0;
     mat M;
+    if (n <= 0)
+        throw Exception("Error: The number of rows and the number of columns in an (initialized) matrix must be positive.");
     M.setlength(n, n);
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
@@ -38,58 +42,78 @@ mat ident(int n) {
     }
     return M;
 }
+//All 1 vector with length n
+//Tested
 vect identv(int n) {
     int i = 0;
     vect v;
+    if (n <= 0)
+        throw Exception("Error: The size of an (initialized) vector must be positive.");
     v.setlength(n);
     for (i = 0; i < n; i++) {
         v[i] = 1;
     }
     return v;
 }
+//Calc the sum of a real vector
+//Tested
 double sumvec(vect v) {
     int i = 0;
-    int sum = 0;
+    double sum = 0;
     int l = v.length();
-    //std::cout << "Sum of vector " << v.tostring(3) << std::endl;
+    if (!l)
+        throw Exception("Error: sumvec can not take an empty array as its argument.");
     for (; i < l; i++) {
         sum += v[i];
-        //std::cout << v[i] << " " << sum << " ";
     };
-    //std::cout << std::endl;
     return sum;
 }
+//Calc the sum of an integer vector
+//Tested
 int isumvec(ivect v) {
     int i = 0;
     int sum = 0;
     int l = v.length();
+    if (!l)
+        throw Exception("Error: isumvec can not take an empty array as its argument.");
     for (; i < l; i++) {
         sum += v[i];
     };
-    //std::cout << std::endl;
     return sum;
 }
+//Check whether a real vec is actually (almost) an int one
+//Tested
 bool vecisint(vect v) {
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: vecisint can not take an empty array as its argument.");
     for (; i < l; i++) {
         if (v[i] - round(v[i]) > EPSILON || v[i] - round(v[i]) < -EPSILON)
             return false;
     }
     return true;
 }
+//Check whether an int vec is non negative
+//Tested
 bool ivecisnonneg(ivect v) {
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: ivecisnonneg can not take an empty array as its argument.");
     for (; i < l; i++) {
         if (v[i] < 0)
             return false;
     }
     return true;
 }
+//Rounding real vectors
+//Tested
 ivect intizev(vect v) {
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: intizev can not take an empty array as its argument.");
     ivect iv;
     iv.setlength(l);
     for (; i < l; i++) {
@@ -97,9 +121,13 @@ ivect intizev(vect v) {
     }
     return iv;
 }
+//Rounding real matrices
+//Tested
 imat intizem(mat m) {
     int i = 0, j = 0;
     long r = m.rows(), c = m.cols();
+    if (!r || !c)
+        throw Exception("Error: intizem can not take an empty array as its argument.");
     imat im;
     im.setlength(r, c);
     for (; i < r; i++) {
@@ -108,9 +136,13 @@ imat intizem(mat m) {
     }
     return im;
 }
+//Casting int vector to real
+//Tested
 vect rizev(ivect v) {
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: Can not apply rizev to an empty vector.");
     vect rv;
     rv.setlength(l);
     for (; i < l; i++) {
@@ -118,9 +150,13 @@ vect rizev(ivect v) {
     }
     return rv;
 }
+//Casting int matrix to real
+//Tested
 mat rizem(imat m) {
     int i = 0, j = 0;
     long r = m.rows(), c = m.cols();
+    if (!r || !c)
+        throw Exception("Error: rizem can not take an empty array as its argument.");
     mat rm;
     rm.setlength(r, c);
     for (; i < r; i++) {
@@ -129,63 +165,93 @@ mat rizem(imat m) {
     }
     return rm;
 }
+//Convert an int vector of length n to a n * 1 int matrix
+//Tested
 imat vec2matc(ivect v) {
     imat M;
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: Can not apply vec2matc to an empty vector.");
     M.setlength(l, 1);
     for (; i < l; i++) {
         M[i][0] = v[i];
     }
     return M;
 }
+//Convert a vector of length n to a 1 * n matrix
+//Tested
 imat vec2matr(ivect v) {
     imat M;
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: Can not apply vec2matr to an empty vector.");
     M.setlength(1, l);
     for (; i < l; i++) {
         M[0][i] = v[i];
     }
     return M;
 }
+//Tested
 ivect add(ivect v1, ivect v2) {
     int i = 0;
-    long l = v1.length();
+    long l1 = v1.length();
+    long l2 = v2.length();
     ivect rv;
-    if (v2.length() != l) {
-        std::cerr << "The two vectors have different lengths!" << std::endl;
+    if (!l1 || !l2)
+        throw Exception("Error: Can not add an empty vector to any vector");
+    if (l1 != l2) {
+        throw Exception("Error: The two vectors have different lengths!");
     }
-    rv.setlength(l);
-    for (; i < l; i++) {
+    rv.setlength(l1);
+    for (; i < l1; i++) {
         rv[i] = v1[i] + v2[i];
     }
     return rv;
 }
+//Take the k-th (starting from 0) column of matrix M
+//Tested
 ivect matc2vec(imat M, int k) {
     ivect v;
     int i = 0;
-    long l = M.rows();
-    v.setlength(l);
-    for (; i < l; i++) {
+    long l1 = M.rows();
+    long l2 = M.cols();
+    if (!l1 || !l2)
+        throw Exception("Error: Can not apply matr2vec to an empty matrix.");
+    if (k < 0 || k >= l2)
+        throw Exception("Error: The index is out of range.");
+    v.setlength(l1);
+    for (; i < l1; i++) {
         v[i] = M[i][k];
     }
     return v;
 }
+//Take the k-th (starting from 0) row of matrix M
+//Tested
 ivect matr2vec(imat M, int k) {
     ivect v;
     int i = 0;
-    long l = M.rows();
-    v.setlength(l);
-    for (; i < l; i++) {
+    long l1 = M.rows();
+    long l2 = M.cols();
+    if (!l1 || !l2)
+        throw Exception("Error: Can not apply matr2vec to an empty matrix.");
+    if (k < 0 || k >= l1)
+        throw Exception("Error: The index is out of range.");
+    v.setlength(l2);
+    for (; i < l2; i++) {
         v[i] = M[k][i];
     }
     return v;
 }
+//Convert an real vector of length n to a n * 1 real matrix
+//Tested
 mat vec2matc(vect v) {
     mat M;
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: Can not apply vec2matc to an empty vector.");
     M.setlength(l, 1);
     for (; i < l; i++) {
         M[i][0] = v[i];
@@ -196,15 +262,22 @@ vect matc2vec(mat M, int k) {
     vect v;
     int i = 0;
     long l = M.rows();
+    if (!l)
+        throw Exception("Error: Can not apply matc2vec to an empty matrix.");
+    if (k < 0 || k >= l)
+        throw Exception("Error: The index is out of range.");
     v.setlength(l);
     for (; i < l; i++) {
         v[i] = M[i][k];
     }
     return v;
 }
+//Tested
 bool isSincere(ivect v) {
     int i = 0;
     long l = v.length();
+    if (!l)
+        throw Exception("Error: Can not apply isSincere to an empty array.");
     for (; i < l; i++) {
         if (v[i] == 0)
             return false;
@@ -212,13 +285,11 @@ bool isSincere(ivect v) {
     return true;
 }
 ivect matvecmult(imat M, ivect v) {
-    ivect def;
     mat ress;
     imat vv = vec2matc(v);
     long len = M.rows();
     if (M.cols() != v.length()) {
-        std::cout << "Wrong sizes!" << std::endl;
-        return def;
+        throw Exception("Error: The matrix and the vector are not compatible.");
     }
     ress.setlength(len, 1);
     alglib::rmatrixgemm(len,1,M.cols(), 1, rizem(M),0,0,0, rizem(vv),0,0,0,0,ress,0,0);
@@ -226,12 +297,10 @@ ivect matvecmult(imat M, ivect v) {
 }
 
 imat mult(imat M1, imat M2) {
-    imat def;
     mat ress;
     long len = M1.cols();
     if (M2.rows() != len) {
-        std::cout << "Wrong sizes!" << std::endl;
-        return def;
+        throw Exception("Error: The matrices are not compatible.");
     }
     ress.setlength(M1.rows(), M2.cols());
     alglib::rmatrixgemm(M1.rows(),M2.cols(),len, 1, rizem(M1),0,0,0, rizem(M2),0,0,0,0,ress,0,0);
@@ -239,13 +308,11 @@ imat mult(imat M1, imat M2) {
 }
 
 vect matvecmult(mat M, vect v) {
-    vect def;
     mat ress;
     mat vv = vec2matc(v);
     long len = M.rows();
     if (M.cols() != v.length()) {
-        std::cout << "Wrong sizes!" << std::endl;
-        return def;
+        throw Exception("Error: The matrix and the vector are not compatible.");
     }
     ress.setlength(len, 1);
     alglib::rmatrixgemm(len,1,M.cols(), 1, M,0,0,0, vv,0,0,0,0,ress,0,0);
@@ -269,7 +336,7 @@ void printVectors(vecivect vs) {
 }
 
 bool equals(ivect v1, ivect v2) {
-    int l = v1.length();
+    long l = v1.length();
     int i = 0;
     if (v2.length() != l)
         return false;
@@ -350,14 +417,17 @@ int sameMSemiOrbit (imat M, ivect v1, ivect v2) {
     return -1;
 }
 //Calculate I+M+M^2+\cdots+M^k
+//Tested
 imat mppo(imat M, int k) {
     int i = 0;
     int n = M.rows();
     imat temp = intizem(ident(n));
     mat id = ident(n);
     if (M.cols() != n)
-        return temp;
-    if (k <= 0)
+        throw Exception("Error: The matrix isn't a square matrix.");
+    if (k < 0)
+        throw Exception("Error: k must be a nonnegative number.");
+    if (k == 0)
         return temp;
     for (; i < k; i++) {
         alglib::rmatrixgemm(n,n,n, 1, rizem(M),0,0,0, rizem(temp),0,0,0,1,id,0,0);
