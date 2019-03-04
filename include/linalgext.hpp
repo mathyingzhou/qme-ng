@@ -12,28 +12,30 @@
 #include <stdio.h>
 #include "ap.h"
 #include "linalg.h"
+#include "Exception.h"
 typedef alglib::real_1d_array vect;
 typedef alglib::integer_1d_array ivect;
 typedef std::vector<ivect> vecivect;
 typedef alglib::real_2d_array mat;
 typedef alglib::integer_2d_array imat;
 #define EPSILON 0.001
-double sumvec(vect);
-int isumvec(ivect);
-bool isSincere(ivect);
-ivect intizev(vect);
-imat intizem(mat);
-imat mppo(imat, int);
-vect rizev(ivect);
-mat rizem(imat);
-mat ident(int);
-vect identv(int);
-bool vecisint(vect);
-bool ivecisnonneg(ivect);
-imat vec2matc(ivect);
-imat vec2matr(ivect);
-ivect add(ivect, ivect);
-ivect matc2vec(imat, int);
+double sumvec(vect);//RTested
+int isumvec(ivect);//RTested
+bool isSincere(ivect);//RTested
+ivect intizev(vect);//RTested
+imat intizem(mat);//RTested
+imat mppo(imat, int);//RTested
+vect rizev(ivect);//RTested
+mat rizem(imat);//RTested
+vect identv(int);//RTested
+mat ident(int);//RTested
+bool vecisint(vect);//RTested
+bool ivecisnonneg(ivect);//RTested
+imat vec2matc(ivect);//RTested
+imat vec2matr(ivect);//RTested
+mat vec2matc(vect);//RTested
+ivect add(ivect, ivect);//RTested
+ivect matc2vec(imat, int);//RTested
 ivect matr2vec(imat, int);
 ivect matvecmult(imat, ivect);
 imat mult(imat, imat);
