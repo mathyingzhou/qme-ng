@@ -972,6 +972,161 @@ BOOST_DATA_TEST_CASE(Matc2vecK0Explicit, bdata::xrange<int>(0,10,1) * bdata::xra
     v.setlength(rand1, 0);
     BOOST_CHECK_THROW(matc2vec(v, rand2), Exception);
 }
+BOOST_DATA_TEST_CASE(Matc2vec11, bdata::xrange<int>(-10,10,1) * bdata::xrange<int>(-10,10,1), rand1, rand2) {
+    imat v;
+    v.setlength(1, 1);
+    v(0,0) = rand1;
+    if (!rand2) {
+        ivect w = matc2vec(v, rand2);
+        BOOST_CHECK_EQUAL(w.length(), 1);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+    }
+    else
+        BOOST_CHECK_THROW(matc2vec(v, rand2), Exception);
+}
+BOOST_DATA_TEST_CASE(Matc2vec21, bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-10,10,1), rand1, rand2, rand3)
+{
+    imat v;
+    v.setlength(2, 1);
+    v(0,0) = rand1;
+    v(1,0) = rand2;
+    if (!rand3) {
+        ivect w = matc2vec(v, rand3);
+        BOOST_CHECK_EQUAL(w.length(), 2);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+        BOOST_CHECK_EQUAL(w[1], rand2);
+    }
+    else
+        BOOST_CHECK_THROW(matc2vec(v, rand3), Exception);
+}
+BOOST_DATA_TEST_CASE(Matc2vec12, bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-10,10,1), rand1, rand2, rand3)
+{
+    imat v;
+    v.setlength(1, 2);
+    v(0,0) = rand1;
+    v(0,1) = rand2;
+    if (!rand3) {
+        ivect w = matc2vec(v, 0);
+        BOOST_CHECK_EQUAL(w.length(), 1);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+    }
+    else if (rand3 == 1) {
+        ivect w = matc2vec(v, 1);
+        BOOST_CHECK_EQUAL(w.length(), 1);
+        BOOST_CHECK_EQUAL(w[0], rand2);
+    }
+    else
+        BOOST_CHECK_THROW(matc2vec(v, rand3), Exception);
+}
+BOOST_DATA_TEST_CASE(Matc2vec22, bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-10,10,1), rand1, rand2, rand3, rand4, rand5)
+{
+    imat v;
+    v.setlength(2, 2);
+    v(0,0) = rand1;
+    v(0,1) = rand2;
+    v(1,0) = rand3;
+    v(1,1) = rand4;
+    if (!rand5) {
+        ivect w = matc2vec(v, 0);
+        BOOST_CHECK_EQUAL(w.length(), 2);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+        BOOST_CHECK_EQUAL(w[1], rand3);
+    }
+    else if (rand5 == 1) {
+        ivect w = matc2vec(v, 1);
+        BOOST_CHECK_EQUAL(w.length(), 2);
+        BOOST_CHECK_EQUAL(w[0], rand2);
+        BOOST_CHECK_EQUAL(w[1], rand4);
+    }
+    else
+        BOOST_CHECK_THROW(matc2vec(v, rand5), Exception);
+}
+BOOST_AUTO_TEST_SUITE_END();
+//matr2vec
+BOOST_AUTO_TEST_SUITE(Matr2vec);
+BOOST_DATA_TEST_CASE(Matr2vec00, bdata::xrange<int>(-10,10,1), rand1) {
+    imat v;
+    BOOST_CHECK_THROW(matr2vec(v, rand1), Exception);
+}
+BOOST_DATA_TEST_CASE(Matr2vec0KExplicit, bdata::xrange<int>(0,10,1) * bdata::xrange<int>(-10,10,1), rand1, rand2) {
+    imat v;
+    v.setlength(0, rand1);
+    BOOST_CHECK_THROW(matr2vec(v, rand2), Exception);
+}
+BOOST_DATA_TEST_CASE(Matr2vecK0Explicit, bdata::xrange<int>(0,10,1) * bdata::xrange<int>(-10,10,1), rand1, rand2) {
+    imat v;
+    v.setlength(rand1, 0);
+    BOOST_CHECK_THROW(matr2vec(v, rand2), Exception);
+}
+BOOST_DATA_TEST_CASE(Matr2vec11, bdata::xrange<int>(-10,10,1) * bdata::xrange<int>(-10,10,1), rand1, rand2) {
+    imat v;
+    v.setlength(1, 1);
+    v(0,0) = rand1;
+    if (!rand2) {
+        ivect w = matr2vec(v, rand2);
+        BOOST_CHECK_EQUAL(w.length(), 1);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+    }
+    else
+        BOOST_CHECK_THROW(matr2vec(v, rand2), Exception);
+}
+BOOST_DATA_TEST_CASE(Matr2ver12, bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-10,10,1), rand1, rand2, rand3)
+{
+    imat v;
+    v.setlength(1, 2);
+    v(0,0) = rand1;
+    v(0,1) = rand2;
+    if (!rand3) {
+        ivect w = matr2vec(v, 0);
+        BOOST_CHECK_EQUAL(w.length(), 2);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+        BOOST_CHECK_EQUAL(w[1], rand2);
+    }
+    else
+        BOOST_CHECK_THROW(matr2vec(v, rand3), Exception);
+}
+BOOST_DATA_TEST_CASE(Matr2vec21, bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-10,10,1), rand1, rand2, rand3)
+{
+    imat v;
+    v.setlength(2, 1);
+    v(0,0) = rand1;
+    v(1,0) = rand2;
+    if (!rand3) {
+        ivect w = matr2vec(v, 0);
+        BOOST_CHECK_EQUAL(w.length(), 1);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+    }
+    else if (rand3 == 1) {
+        ivect w = matr2vec(v, 1);
+        BOOST_CHECK_EQUAL(w.length(), 1);
+        BOOST_CHECK_EQUAL(w[0], rand2);
+    }
+    else
+        BOOST_CHECK_THROW(matr2vec(v, rand3), Exception);
+}
+BOOST_DATA_TEST_CASE(Matr2vec22, bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-1,1,1) * bdata::xrange<int>(-10,10,1), rand1, rand2, rand3, rand4, rand5)
+{
+    imat v;
+    v.setlength(2, 2);
+    v(0,0) = rand1;
+    v(0,1) = rand2;
+    v(1,0) = rand3;
+    v(1,1) = rand4;
+    if (!rand5) {
+        ivect w = matr2vec(v, 0);
+        BOOST_CHECK_EQUAL(w.length(), 2);
+        BOOST_CHECK_EQUAL(w[0], rand1);
+        BOOST_CHECK_EQUAL(w[1], rand2);
+    }
+    else if (rand5 == 1) {
+        ivect w = matr2vec(v, 1);
+        BOOST_CHECK_EQUAL(w.length(), 2);
+        BOOST_CHECK_EQUAL(w[0], rand3);
+        BOOST_CHECK_EQUAL(w[1], rand4);
+    }
+    else
+        BOOST_CHECK_THROW(matr2vec(v, rand5), Exception);
+}
 BOOST_AUTO_TEST_SUITE_END();
 /*BOOST_AUTO_TEST_CASE(MyTestCaseFalse)
 {
